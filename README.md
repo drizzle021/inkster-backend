@@ -8,7 +8,7 @@ This repository contains the backend for the !nkster mobile application, built w
 
 ### **1. Clone the Repository**
 ```bash
-git clone https://github.com/your-username/inkster-backend.git
+git clone https://github.com/drizzle021/inkster-backend.git
 cd inkster-backend
 ```
 
