@@ -1,11 +1,19 @@
 from app.extensions import db
+from enum import Enum as PyEnum
+
+# CREATE TYPE posttype AS ENUM ('Illustration', 'Novel', 'Manga');
+# Needs Enum defined in database before use
+class PostType(PyEnum):
+    ILLUSTRATION = "Illustration"
+    NOVEL = "Novel"
+    MANGA = "Manga"
 
 class Post(db.Model):
     __tablename__ = "posts"
 
     id :int = db.Column(db.Integer, primary_key=True)
     title :str = db.Column(db.String(100), nullable=False)
-    # type :str = 
+    post_type :str = db.Column(db.Enum(PostType), nullable=False)
     caption :str = db.Column(db.String(3000), nullable=False)
     description :str = db.Column(db.String(300), nullable=True)
     is_spoilered :bool = db.Column(db.Boolean, nullable=False)
