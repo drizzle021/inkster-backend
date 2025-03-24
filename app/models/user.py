@@ -1,13 +1,28 @@
 from app.extensions import db
 from enum import Enum as PyEnum
+import bcrypt
 
 # CREATE TYPE role AS ENUM ('Artist', 'Moderator');
 # Needs Enum defined in database before use
 class Role(PyEnum):
-    ARTIST = "Artist"
-    MODERATOR = "Moderator"
+    ARTIST = "ARTIST"
+    MODERATOR = "MODERATOR"
 
 class User(db.Model):
+    """
+    Represents a user in the system.
+
+    Attributes:
+        id (int): Identifier number of the user.
+        username (str): The username chosen by the user.
+        email (str): The user's e-mail address.
+        password (str): Hashed password.
+        role (str): Role of the user (Artist/Moderator).
+        profile_picture (str): Path to the location of the user's uploaded profile picture.
+        banner (str): Path to the location of the user's uploaded profile picture.
+        date_joined : Registration date of the user.
+    """
+
     __tablename__ = "users"
 
     id :int = db.Column(db.Integer, primary_key=True)
@@ -22,9 +37,8 @@ class User(db.Model):
     posts = db.relationship("Post", backref="author", lazy=True)
 
     def __repr__(self):
-        return f"<User {self.username}>"
-
-
+        return f"<User {self.username} #{self.id}>"
+    
 user_tags = db.Table(
     "user_tags",
     db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
