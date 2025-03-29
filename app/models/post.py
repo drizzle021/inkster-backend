@@ -4,9 +4,9 @@ from enum import Enum as PyEnum
 # CREATE TYPE posttype AS ENUM ('Illustration', 'Novel', 'Manga');
 # Needs Enum defined in database before use
 class PostType(PyEnum):
-    ILLUSTRATION = "Illustration"
-    NOVEL = "Novel"
-    MANGA = "Manga"
+    ILLUSTRATION = "ILLUSTRATION"
+    NOVEL = "NOVEL"
+    MANGA = "MANGA"
 
 class Post(db.Model):
     __tablename__ = "posts"
@@ -22,6 +22,9 @@ class Post(db.Model):
     # updated_at
 
     author_id :int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    # TODO: lazy load images (?)
+
 
     def __repr__(self):
         return f"<Post {self.title}>"

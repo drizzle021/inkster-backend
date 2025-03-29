@@ -51,3 +51,10 @@ follows = db.Table(
     db.Column("followed_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
     db.Column("followed_at", db.DateTime, server_default=db.func.now())
 )
+
+saved_posts = db.Table(
+    "saved_posts",
+    db.Column("post_id", db.Integer, db.ForeignKey("posts.id"), primary_key=True),
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
+    db.Column("saved_at", db.DateTime, server_default=db.func.now())
+)
