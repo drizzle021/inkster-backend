@@ -13,6 +13,8 @@ def hello():
 def register():
     """
     Route to register a new user in the system.
+    
+    Required fields: username, email, password
     """
     data = request.get_json()
 
@@ -29,6 +31,8 @@ def register():
 def login():
     """
     Route to authenticate a user and return a token.
+
+    Required fields: email, password
     """
     data = request.get_json()
 
