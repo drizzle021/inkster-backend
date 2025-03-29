@@ -9,7 +9,9 @@ class AuthService:
     def register_user(data):
         """
         Creates a new user in the database.
+
         Args:
+
             data (dict): Contains "username", "email", "password".
         """
 
@@ -38,6 +40,7 @@ class AuthService:
         Authenticate a user and generate an access token.
 
         Args:
+        
             data (dict): Contains "email" and "password".
         """
         user = User.query.filter_by(email=data["email"]).first()
