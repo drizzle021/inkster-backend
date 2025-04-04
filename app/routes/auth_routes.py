@@ -42,3 +42,20 @@ def login():
     response, status_code = AuthService.authenticate_user(data)
     
     return jsonify(response), status_code
+
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    """
+    Route to authenticate a user and return a token.
+
+    Required fields: email, password
+    """
+    data = request.get_json()
+
+    if not all(key in data for key in ["email", "password"]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    response, status_code = AuthService.authenticate_user(data)
+    
+    return jsonify(response), status_code

@@ -65,7 +65,7 @@ def like_post(id):
     """
     pass
 
-@post_bp.route("/posts/<int:id>/like", methods=["POST"])
+@post_bp.route("/posts/<int:id>/save", methods=["POST"])
 def save_post(id):
     """
     Route to save a post with a specific ID to saved posts.

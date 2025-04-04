@@ -1,0 +1,418 @@
+{
+    "openapi": "3.0.0",
+    "info":{
+        "title": "Inkster",
+        "summary": "illustrations",
+        "description": "szia uram"
+    },
+    "tags": [
+        {
+            "name": "auth",
+            "description": "Authentication related endpoints"
+        },
+        {
+            "name": "posts",
+            "description": "Post management"
+        },
+        {
+            "name": "reports",
+            "description": "Report management"
+        },
+        {
+            "name": "users",
+            "description": "User management"
+        }
+        
+    ],
+    "paths": {
+        "/auth/": {
+            "get": {
+                "tags": ["auth"],
+                "summary": "Test",
+                "responses": {
+                "200": {
+                    "description": "Success",
+                    "schema": {
+                    "type": "object",
+                    "properties": {
+                        "hello": {
+                        "type": "string"
+                        }
+                    }
+                    }
+                }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "tags": ["auth"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": ["auth"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": ["auth"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                "200": {
+                    "description": "Success",
+                    "schema": {
+                    "type": "object",
+                    "properties": {
+                        "hello": {
+                        "type": "string"
+                        }
+                    }
+                    }
+                }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "get": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                "200": {
+                    "description": "Success",
+                    "schema": {
+                    "type": "object",
+                    "properties": {
+                        "hello": {
+                        "type": "string"
+                        }
+                    }
+                    }
+                }
+                }
+            }
+        },
+        "/posts/{id}/report": {
+            "post": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/edit": {
+            "put": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/like": {
+            "post": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/save": {
+            "post": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/comment": {
+            "get": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["posts"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/reports": {
+            "get": {
+                "tags": ["reports"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/reports/{id}": {
+            "get": {
+                "tags": ["reports"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["reports"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "tags": ["users"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "tags": ["users"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["users"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        },
+        "/users/{id}/update-pictures": {
+            "put": {
+                "tags": ["users"],
+                "summary": "Returns a greeting",
+                "responses": {
+                    "200": {
+                    "description": "Success",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                        "hello": {
+                            "type": "string"
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        }
+    }
+}
