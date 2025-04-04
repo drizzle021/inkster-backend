@@ -17,7 +17,7 @@ class UserService:
                 "email": user.email,
             }
             for user in users
-        ]
+        ], 200
     
     @staticmethod
     def get_user(id):

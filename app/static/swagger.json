@@ -3,7 +3,7 @@
     "info":{
         "title": "Inkster",
         "summary": "illustrations",
-        "description": "szia uram"
+        "description": ""
     },
     "tags": [
         {
@@ -30,35 +30,72 @@
                 "tags": ["auth"],
                 "summary": "Test",
                 "responses": {
-                "200": {
-                    "description": "Success",
-                    "schema": {
-                    "type": "object",
-                    "properties": {
-                        "hello": {
-                        "type": "string"
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "hello": {
+                                "type": "string"
+                                }
+                            }
                         }
                     }
-                    }
-                }
                 }
             }
         },
         "/auth/register": {
             "post": {
                 "tags": ["auth"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
+                "summary": "Register new User",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "username": {
+                                    "type": "string",
+                                    "description": "chosen username",
+                                    "example": "test_user"
+                                },
+                                "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "description": "chosen email",
+                                    "example": "test_user@example.com"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "description": "chosen password",
+                                    "example": "securepassword"
+                                }
+                            },
+                            "required": ["username", "email", "password"]
                         }
                         }
                     }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successfully registered User"
+
+                    },
+                    "400": {
+                        "description": "Missing required field(s)"
+
+                    },
+                    "409": {
+                        "description": "Username or Email already exists"
+
                     }
                 }
             }
@@ -66,18 +103,57 @@
         "/auth/login": {
             "post": {
                 "tags": ["auth"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
+                "summary": "Login User",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "description": "registered email",
+                                    "example": "test_user@example.com"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "description": "registered password",
+                                    "example": "securepassword"
+                                }
+                            },
+                            "required": ["email", "password"]
                         }
                         }
                     }
+                },
+
+                "responses": {
+                    "200": {
+                        "description": "User successfully authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "description": "JWT token for authenticated user"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing required field(s)"
+
+                    },
+                    "401": {
+                        "description": "Invalid email or password"
+
                     }
                 }
             }
@@ -86,17 +162,56 @@
             "post": {
                 "tags": ["auth"],
                 "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "description": "registered email",
+                                    "example": "test_user@example.com"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "description": "registered password",
+                                    "example": "securepassword"
+                                }
+                            },
+                            "required": ["email", "password"]
                         }
                         }
                     }
+                },
+
+                "responses": {
+                    "200": {
+                        "description": "User successfully logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "description": "JWT token for authenticated user"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing required field(s)"
+
+                    },
+                    "401": {
+                        "description": "Invalid email or password"
+
                     }
                 }
             }
@@ -340,21 +455,48 @@
                 }
             }
         },
-        "/users": {
+        "/users/": {
             "get": {
                 "tags": ["users"],
-                "summary": "Returns a greeting",
+                "summary": "Returns all Users",
+
                 "responses": {
                     "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
+                        "description": "Users",
+                        "content":{
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties":{
+                                            "id": {
+                                                "type": "integer", 
+                                                "format": "int64",
+                                                "example": 1
+                                            },
+                                            "username": {
+                                                "type": "string", 
+                                                "example": "test_user"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "format": "email", 
+                                                "example": "test_user@example.com"
+                                            },
+                                            "profile_picture": {
+                                                "type": "string",
+                                                "example": "avatar.png"
+                                            },
+                                            "banner_picture": {
+                                                "type": "string",
+                                                "example": "banner.png"
+                                            }
+                                        }                                        
+                                    }
+                                }
+                            }
                         }
-                        }
-                    }
                     }
                 }
             }
@@ -362,18 +504,57 @@
         "/users/{id}": {
             "get": {
                 "tags": ["users"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Returns User with ID",
+                "parameters":[
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID for the User",
+                        "required": "true",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User",
+                        "content":{
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties":{
+                                        "id": {
+                                            "type": "integer", 
+                                            "format": "int64",
+                                            "example": 1
+                                        },
+                                        "username": {
+                                            "type": "string", 
+                                            "example": "test_user"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email", 
+                                            "example": "test_user@example.com"
+                                        },
+                                        "profile_picture": {
+                                            "type": "string",
+                                            "example": "avatar.png"
+                                        },
+                                        "banner_picture": {
+                                            "type": "string",
+                                            "example": "banner.png"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+
                     }
                 }
             },
@@ -382,15 +563,15 @@
                 "summary": "Returns a greeting",
                 "responses": {
                     "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                            "hello": {
+                                "type": "string"
+                            }
+                            }
                         }
-                        }
-                    }
                     }
                 }
             }
