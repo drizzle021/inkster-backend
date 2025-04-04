@@ -6,7 +6,7 @@ from app.models.user import Role
 
 class AuthService:
     @staticmethod
-    def register_user(data):
+    def register_user(username, email, password):
         """
         Creates a new user in the database.
 
@@ -17,13 +17,13 @@ class AuthService:
 
 
         # Check if username or email already exists
-        if User.query.filter((User.username == data["username"]) | (User.email == data["email"])).first():
+        if User.query.filter((User.username == username) | (User.email == email)).first():
             return {"error": "Username or email already exists"}, 409
         
-        hash = bcrypt.hashpw(data["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user = User(
-            username=data["username"],
-            email=data["email"],
+            username=username,
+            email=email,
             password=hash,
             role=Role.ARTIST,
             profile_picture="", # static image after registration
@@ -35,7 +35,7 @@ class AuthService:
         return {"message": "New user added successfully"}, 201
     
     @staticmethod
-    def authenticate_user(data):
+    def authenticate_user(email, password):
         """
         Authenticate a user and generate an access token.
 
@@ -43,12 +43,12 @@ class AuthService:
         
             data (dict): Contains "email" and "password".
         """
-        user = User.query.filter_by(email=data["email"]).first()
+        user = User.query.filter_by(email=email).first()
         if not user:
             return {"error": "Invalid email or password"}, 401
 
         # Verify the password
-        if not bcrypt.checkpw(data["password"].encode("utf-8"), user.password.encode("utf-8")):
+        if not bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")):
             return {"error": "Invalid email or password"}, 401
 
         # Generate token

@@ -16,13 +16,16 @@ def register():
     
     Required fields: username, email, password
     """
-    data = request.get_json()
+    username = request.form.get("username")
+    email = request.form.get("email")
+    password = request.form.get("password")
 
     # check required fields
-    if not all(key in data for key in ["username", "email", "password"]):
+    if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
+    
 
-    response, status_code = AuthService.register_user(data)
+    response, status_code = AuthService.register_user(username, email, password)
 
     return jsonify(response), status_code
 
@@ -34,12 +37,13 @@ def login():
 
     Required fields: email, password
     """
-    data = request.get_json()
+    email = request.form.get("email")
+    password = request.form.get("password")
 
-    if not all(key in data for key in ["email", "password"]):
+    if not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
-    response, status_code = AuthService.authenticate_user(data)
+    response, status_code = AuthService.authenticate_user(email, password)
     
     return jsonify(response), status_code
 
