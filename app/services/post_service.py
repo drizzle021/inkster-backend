@@ -35,3 +35,31 @@ class PostService:
         }, 200
 
 
+    @staticmethod
+    def add_post(title, post_type, caption, description, is_spoilered, software):
+        """
+        Creates a post in the database.
+
+        Args:
+            title
+            post_type
+            caption
+            description
+            is_spoilered
+            software
+        """
+
+        # TODO: ADD PICTURES
+        post = Post(
+            title=title,
+            post_type=post_type,
+            caption=caption,
+            description=description,
+            is_spoilered=is_spoilered,
+            software=software
+        )
+
+        db.session.add(post)
+        db.session.commit()
+
+        return {"message": "New post created successfully"}, 201

@@ -161,33 +161,13 @@
         "/auth/logout": {
             "post": {
                 "tags": ["auth"],
-                "summary": "Returns a greeting",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/x-www-form-urlencoded": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "email": {
-                                    "type": "string",
-                                    "format": "email",
-                                    "description": "registered email",
-                                    "example": "test_user@example.com"
-                                },
-                                "password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "description": "registered password",
-                                    "example": "securepassword"
-                                }
-                            },
-                            "required": ["email", "password"]
-                        }
-                        }
+                "summary": "Logout User",
+                "description": "Invalidates the user's token or ends the session.",
+                "security": [
+                    {
+                      "bearerAuth": []
                     }
-                },
-
+                ],
                 "responses": {
                     "200": {
                         "description": "User successfully logged out",
@@ -198,20 +178,12 @@
                                     "properties": {
                                         "access_token": {
                                             "type": "string",
-                                            "description": "JWT token for authenticated user"
+                                            "description": "Logged out successfully"
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Missing required field(s)"
-
-                    },
-                    "401": {
-                        "description": "Invalid email or password"
-
                     }
                 }
             }
@@ -236,19 +208,66 @@
             },
             "post": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                "200": {
-                    "description": "Success",
-                    "schema": {
-                    "type": "object",
-                    "properties": {
-                        "hello": {
-                        "type": "string"
+                "summary": "Create new Post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "chosen title",
+                                        "example": "title_of_post"
+                                    },
+                                    "post_type": {
+                                        "type": "string",
+                                        "description": "chosen type of post",
+                                        "example": "ILLUSTRATION",
+                                        "enum": ["ILLUSTRATION", "NOVEL", "MANGA"]
+                                    },
+                                    "caption": {
+                                        "type": "string",
+                                        "description": "chosen caption",
+                                        "example": "title_of_post"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "description": "chosen description",
+                                        "example": "description_of_post"
+                                    },
+                                    "is_spoilered": {
+                                        "type": "boolean",
+                                        "description": "whether the post is marked as a spoiler",
+                                        "example": true
+                                    },
+                                    "software": {
+                                        "type": "string",
+                                        "description": "chosen software",
+                                        "example": "paint"
+                                    }
+                                },
+                                "required": ["title", "post_type", "caption", "is_spoilered"]
+                            }
                         }
                     }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successfully created Post"
+
+                    },
+                    "400": {
+                        "description": "Missing required field(s)"
+
                     }
-                }
                 }
             }
         },

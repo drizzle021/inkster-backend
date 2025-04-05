@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.post_service import PostService
+from app.models.post import PostType
 
 post_bp = Blueprint("posts", __name__)
 
@@ -21,7 +22,24 @@ def add_post():
     Route to create a new post
     """
 
-    pass
+    title = request.form.get("title")
+    post_type = request.form.get("post_type")
+    post_type = PostType(post_type)
+    caption = request.form.get("caption")
+    description = request.form.get("description")
+    is_spoilered = request.form.get("is_spoilered", "false").lower() == "true"
+    software = request.form.get("software")
+
+    # PICTURES in array? LAZY LOAD
+    # picture = request.form.get()
+
+    # check required fields
+    if not title or not post_type or not caption:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    response, status_code = PostService.add_post(title, post_type, caption, description, is_spoilered, software)
+
+    return jsonify(response), status_code
 
 
 @post_bp.route("/posts/<int:id>", methods=["GET"])
