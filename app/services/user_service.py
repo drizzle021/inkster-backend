@@ -1,7 +1,8 @@
-from app.models import User
+from app.models import User, Post
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
+from app.models.user import saved_posts
 
 class UserService:
     @staticmethod
@@ -77,3 +78,19 @@ class UserService:
 
         db.session.commit()
         return {"message": "Profile updated successfully"}, 200
+
+    @staticmethod
+    def get_saved_posts(user_id):
+        posts = db.session.execute(
+            db.select(Post).join(saved_posts).where(saved_posts.c.user_id == user_id)
+        ).scalars().all()
+
+        return [
+            {
+                "id": post.id,
+                "title": post.title,
+                "caption": post.caption,
+                "author_id": post.author_id
+            }
+            for post in posts
+        ], 200

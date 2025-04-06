@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.user_service import UserService
+from app.services.post_service import PostService
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 user_bp = Blueprint("users", __name__)
 
@@ -53,8 +55,11 @@ def follow_user(id):
 
 
 
-
-
-
+@user_bp.route("/users/saved", methods=["GET"])
+@jwt_required()
+def get_my_saved_posts():
+    identity = get_jwt_identity()
+    response, status = UserService.get_saved_posts(user_id=identity)
+    return jsonify(response), status
 
 

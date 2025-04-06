@@ -3,8 +3,7 @@
     "info":{
         "title": "Inkster",
         "summary": "illustrations",
-        "description": ""
-    },
+        "description": "Inkster is a platform for users to share, discover, and interact with illustrations, novels, and manga. This API provides endpoints for authentication, post management, reporting, and user interactions."    },
     "tags": [
         {
             "name": "auth",
@@ -21,29 +20,23 @@
         {
             "name": "users",
             "description": "User management"
+        },
+        {
+            "name": "map",
+            "description": "Map management"
         }
         
     ],
-    "paths": {
-        "/auth/": {
-            "get": {
-                "tags": ["auth"],
-                "summary": "Test",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "hello": {
-                                "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
             }
-        },
+        }
+    },
+    "paths": {
         "/auth/register": {
             "post": {
                 "tags": ["auth"],
@@ -191,7 +184,12 @@
         "/posts": {
             "get": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
+                "summary": "Returns all Posts",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
                     "description": "Success",
@@ -209,6 +207,13 @@
             "post": {
                 "tags": ["posts"],
                 "summary": "Create new Post",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+
+
                 "consumes": [
                     "application/json"
                 ],
@@ -236,7 +241,7 @@
                                     "caption": {
                                         "type": "string",
                                         "description": "chosen caption",
-                                        "example": "title_of_post"
+                                        "example": "caption_of_post"
                                     },
                                     "description": {
                                         "type": "string",
@@ -274,54 +279,172 @@
         "/posts/{id}": {
             "get": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Returns Post with ID",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+
+                "parameters":[
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID for the Post",
+                        "required": "true",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post",
+                        "content":{
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties":{
+                                        "id": {
+                                            "type": "integer", 
+                                            "format": "int64",
+                                            "example": 1
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "description": "chosen title",
+                                            "example": "title_of_post"
+                                        },
+                                        "post_type": {
+                                            "type": "string",
+                                            "description": "chosen type of post",
+                                            "example": "ILLUSTRATION",
+                                            "enum": ["ILLUSTRATION", "NOVEL", "MANGA"]
+                                        },
+                                        "caption": {
+                                            "type": "string",
+                                            "description": "chosen caption",
+                                            "example": "title_of_post"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "description": "chosen description",
+                                            "example": "description_of_post"
+                                        },
+                                        "is_spoilered": {
+                                            "type": "boolean",
+                                            "description": "whether the post is marked as a spoiler",
+                                            "example": true
+                                        },
+                                        "software": {
+                                            "type": "string",
+                                            "description": "chosen software",
+                                            "example": "paint"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found"
+
                     }
                 }
             },
             "delete": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                "200": {
-                    "description": "Success",
-                    "schema": {
-                    "type": "object",
-                    "properties": {
-                        "hello": {
-                        "type": "string"
+                "summary": "Deletes Post with ID",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "parameters":[
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID for the Post",
+                        "required": "true",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post deleted successfully"
+
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+
+                    },
+                    "404": {
+                        "description": "Post not found"
+
                     }
-                }
                 }
             }
         },
         "/posts/{id}/report": {
             "post": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Creates a Report for a Post with ID",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters":[
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID for the Post",
+                        "required": "true",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "report_type": {
+                                        "type": "string",
+                                        "description": "chosen type of report",
+                                        "example": "HATE",
+                                        "enum": ["HATE", "ABUSE", "VIOLENT", "PRIVACY", "SPAM", "IMPERSONATION"]
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "description": "chosen description",
+                                        "example": "description_of_report"
+                                    }
+                                },
+                                "required": ["report_type", "description"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successfully created Report"
+
+                    },
+                    "400": {
+                        "description": "Missing required field(s)"
+
                     }
                 }
             }
@@ -329,18 +452,77 @@
         "/posts/{id}/edit": {
             "put": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Edits a Post with ID",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                      "name": "id",
+                      "in": "path",
+                      "description": "ID of the post to edit",
+                      "required": true,
+                      "schema": {
+                        "type": "integer"
+                      }
+                    }
+                  ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "New title for the post"
+                                    },
+                                    "caption": {
+                                        "type": "string",
+                                        "description": "New caption for the post"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "description": "Updated description"
+                                    },
+                                    "software": {
+                                        "type": "string",
+                                        "description": "Updated software info"
+                                    },
+                                    "is_spoilered": {
+                                        "type": "boolean",
+                                        "description": "Whether the post is marked as a spoiler"
+                                    }
+                                }
+                            }
                         }
                     }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Post updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Post not found"
                     }
                 }
             }
@@ -348,18 +530,62 @@
         "/posts/{id}/like": {
             "post": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Likes a Post with the given ID",
+                "description": "Allows an authenticated user to like a specific post. A post can only be liked once by the same user.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the post to like",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Post liked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post liked"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Post unliked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post unliked"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -367,54 +593,224 @@
         "/posts/{id}/save": {
             "post": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Save a post",
+                "description": "Saves the specified post to the logged-in user's saved posts.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the post to save",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Post saved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post saved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    },
+                    "409": {
+                        "description": "Post already saved"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["posts"],
+                "summary": "Unsave a post",
+                "description": "Removes the specified post from the logged-in user's saved posts.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the post to unsave",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post unsaved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post unsaved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Post not saved"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
         },
-        "/posts/{id}/comment": {
+        "/posts/{id}/comments": {
             "get": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Get comments for a Post with ID",
+                "description": "Retrieves all comments associated with a specific post.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the post",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of comments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "content": {
+                                                "type": "string",
+                                                "example": "This is a great post!"
+                                            },
+                                            "author_id": {
+                                                "type": "integer",
+                                                "example": 3
+                                            },
+                                            "post_id": {
+                                                "type": "integer",
+                                                "example": 3
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2025-04-06T12:34:56"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found"
                     }
                 }
             },
             "post": {
                 "tags": ["posts"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Add a comment to a Post with ID",
+                "description": "Allows an authenticated user to comment on a specific post.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the post to comment on",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "description": "Content of the comment",
+                                        "example": "I love this post!"
+                                    }
+                                },
+                                "required": ["content"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comment added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Comment added successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or empty comment content"
+                    },
+                    "404": {
+                        "description": "Post not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -422,7 +818,12 @@
         "/reports": {
             "get": {
                 "tags": ["reports"],
-                "summary": "Returns a greeting",
+                "summary": "Returns all Reports",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
                     "description": "Success",
@@ -441,40 +842,80 @@
         "/reports/{id}": {
             "get": {
                 "tags": ["reports"],
-                "summary": "Returns a greeting",
-                "responses": {
-                    "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
+                "summary": "Returns a Report with ID",
+                "parameters":[
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID for the Post",
+                        "required": "true",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     }
+                ],
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Report",
+                        "content":{
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties":{
+                                        "id": {
+                                            "type": "integer", 
+                                            "format": "int64",
+                                            "example": 1
+                                        },
+                                        "post_id": {
+                                            "type": "integer", 
+                                            "format": "int64",
+                                            "example": 1
+                                        },
+                                        "report_type": {
+                                            "type": "string",
+                                            "example": "HATE"
+
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "description_of_report"
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+
                     }
                 }
             },
             "post": {
                 "tags": ["reports"],
-                "summary": "Returns a greeting",
+                "summary": "Resolve a Report with ID",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
-                        }
-                    }
+                    "description": "Success"
+                    
                     }
                 }
             }
         },
-        "/users/": {
+        "/users": {
             "get": {
                 "tags": ["users"],
                 "summary": "Returns all Users",
@@ -579,7 +1020,12 @@
             },
             "post": {
                 "tags": ["users"],
-                "summary": "Returns a greeting",
+                "summary": "Follows a User",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -595,10 +1041,63 @@
                 }
             }
         },
+        "/users/saved": {
+            "get": {
+                "tags": ["users"],
+                "summary": "Get saved posts for logged-in user",
+                "description": "Returns a list of posts the logged-in user has saved.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of saved posts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 12
+                                            },
+                                            "title": {
+                                                "type": "string",
+                                                "example": "Saved Post Title"
+                                            },
+                                            "caption": {
+                                                "type": "string",
+                                                "example": "A short caption"
+                                            },
+                                            "author_id": {
+                                                "type": "integer",
+                                                "example": 4
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
         "/users/{id}/update-pictures": {
             "put": {
                 "tags": ["users"],
-                "summary": "Returns a greeting",
+                "summary": "Updated profile picture for the User",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
                     "description": "Success",
@@ -610,6 +1109,22 @@
                         }
                         }
                     }
+                    }
+                }
+            }
+        },
+        "/map": {
+            "get": {
+                "tags": ["map"],
+                "summary": "Open Map with Coordinates",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                    "description": "Success"
                     }
                 }
             }
