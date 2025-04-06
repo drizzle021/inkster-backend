@@ -4,9 +4,12 @@ from enum import Enum as PyEnum
 # CREATE TYPE posttype AS ENUM ('Illustration', 'Novel', 'Manga');
 # Needs Enum defined in database before use
 class ReportType(PyEnum):
-    A = "A"
-    B = "B"
-    C = "C"
+    HATE = "HATE"
+    ABUSE = "ABUSE"
+    VIOLENT = "VIOLENT"
+    PRIVACY = "PRIVACY"
+    SPAM = "SPAM"
+    IMPERSONATION = "IMPERSONATION"
 
 class Status(PyEnum):
     PENDING = "PENDING"
