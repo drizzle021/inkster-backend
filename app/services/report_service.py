@@ -1,5 +1,6 @@
-from app.models import Report
+from app.models import Report, User, Post
 from app.models.report import Status, ReportType
+from app.models.user import Role
 from app.extensions import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -7,16 +8,27 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 class ReportService:
     @staticmethod
     # pagination here maybe
-    def get_all_reports():
+    def get_all_reports(status=None):
         """
         Retrieves all reports from the database.
+        If a status is provided, filters reports by that status.
         """
-        reports = Report.query.all()
+
+        if status:
+            # If status is passed as a string (like "PENDING"), convert to enum
+            try:
+                reports = Report.query.filter(Report.status == Status(status.upper())).all()
+            except ValueError:
+                return {"error": f"Invalid status: {status}"}, 400
+        else:
+            reports = Report.query.all()
+
         return [
             {
                 "id": report.id,
                 "post_id": report.post_id,
-                "report_type": report.report_type.name
+                "report_type": report.report_type.name,
+                "status": report.status.name
             }
             for report in reports
         ], 200
@@ -64,3 +76,60 @@ class ReportService:
         db.session.commit()
 
         return {"message": "New report created successfully"}, 201
+
+
+    @staticmethod
+    def ignore_report(id, identity):
+        """
+        Resolves a report in the database.
+
+        Args:
+        
+            id (int): ID of the report to be created.
+        """
+
+
+        report = db.session.get(Report, id)
+        if not report:
+            return {"error": "Report not found"}, 404
+        
+        logged_in_user = db.session.get(User, identity)
+
+        if logged_in_user.role.name != "MODERATOR":
+            return {"error": "Unauthorized"}, 401
+
+        report.status = Status.DENIED
+        db.session.add(report)
+        db.session.commit()
+
+        return {"message": "Report ignored successfully"}, 200
+
+
+    @staticmethod
+    def remove_post(id, identity):
+        """
+        Resolves a report in the database.
+
+        Args:
+        
+            id (int): ID of the report to be created.
+        """
+
+        report = db.session.get(Report, id)
+        if not report:
+            return {"error": "Report not found"}, 404
+        
+        logged_in_user = db.session.get(User, identity)
+
+        if logged_in_user.role.name != "MODERATOR":
+            return {"error": "Unauthorized"}, 401
+
+        report.status = Status.ACCEPTED
+        db.session.add(report)
+        db.session.commit()
+
+        post = db.session.get(Post, report.post_id)
+        db.session.delete(post)
+        db.session.commit()
+
+        return {"message": "Report ignored successfully"}, 200
