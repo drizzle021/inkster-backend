@@ -35,8 +35,21 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     # updated_at
 
-    author_id :int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    author_id :int = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
+    author = db.relationship("User", back_populates="posts")
+    likes = db.relationship("Like", back_populates="post", cascade="all, delete-orphan", passive_deletes=True)
+    comments = db.relationship("Comment", back_populates="post", cascade="all, delete-orphan", passive_deletes=True)
+    images = db.relationship("Image", back_populates="post", cascade="all, delete-orphan", passive_deletes=True)
+    reports = db.relationship("Report", back_populates="post", cascade="all, delete-orphan", passive_deletes=True)
 
+    # savers = db.relationship("User", secondary="saved_posts", backref=db.backref("saved_posts", lazy="dynamic"), passive_deletes=True)
+    savers = db.relationship(
+        "User",
+        secondary="saved_posts",
+        back_populates="saved_posts",
+        passive_deletes=True
+    )
     # TODO: lazy load images (?)
 
 
@@ -46,6 +59,6 @@ class Post(db.Model):
 
 post_tags = db.Table(
     "post_tags",
-    db.Column("post_id", db.Integer, db.ForeignKey("posts.id"), primary_key=True),
-    db.Column("tag_id", db.Integer, db.ForeignKey("tags.id"), primary_key=True)
+    db.Column("post_id", db.Integer, db.ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("tag_id", db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True)
 )

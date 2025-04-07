@@ -28,8 +28,12 @@ class Report(db.Model):
     status: str = db.Column(db.Enum(Status), nullable=False)
 
 
-    author_id :int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    post_id :int = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+    author_id :int = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id :int = db.Column(db.Integer, db.ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+
+    author = db.relationship("User", back_populates="reports")
+    post = db.relationship("Post", back_populates="reports")
+
 
     def __repr__(self):
         return f"<Report {self.author_id}, #{self.id}>"
