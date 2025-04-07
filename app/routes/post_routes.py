@@ -13,7 +13,14 @@ def get_posts():
     Route to retrieve all posts.
     """
 
-    response, status_code = PostService.get_all_posts()
+    keywords = request.args.get("keywords")
+    tags = request.args.get("tags")
+
+    post_type = request.args.get("post_type")
+
+
+
+    response, status_code = PostService.get_all_posts(keywords, tags, post_type)
     
     return jsonify(response), status_code
 
@@ -97,7 +104,7 @@ def report_post(id):
     return jsonify(response), status_code
 
 
-@post_bp.route("/posts/<int:id>/edit", methods=["PUT"])
+@post_bp.route("/posts/<int:id>", methods=["PUT"])
 @jwt_required()
 def edit_post(id):
     """
@@ -113,11 +120,11 @@ def edit_post(id):
 
 
 # NO IDEA
-@post_bp.route("/posts/<int:id>/like", methods=["POST"])
+@post_bp.route("/posts/like/<int:id>", methods=["POST"])
 @jwt_required()
 def like_post(id):
     """
-    Route to add a like to a post with a specific ID.
+    Route to toggle like to a post with a specific ID.
     """
     identity = get_jwt_identity()
     response, status_code = PostService.toggle_like(id, identity)
@@ -125,28 +132,19 @@ def like_post(id):
 
 
 
-@post_bp.route("/posts/<int:id>/save", methods=["POST"])
+@post_bp.route("/posts/save/<int:id>", methods=["POST"])
 @jwt_required()
 def save_post(id):
     """
-    Route to save a post with a specific ID to saved posts.
+    Route to toggle save a post with a specific ID to saved posts.
     """
     identity = get_jwt_identity()
-    response, status = PostService.save_post(id, identity)
-    return jsonify(response), status
-
-@post_bp.route("/posts/<int:id>/save", methods=["DELETE"])
-@jwt_required()
-def unsave_post(id):
-    identity = get_jwt_identity()
-    response, status = PostService.unsave_post(id, identity)
+    response, status = PostService.toggle_save(id, identity)
     return jsonify(response), status
 
 
 
-
-
-@post_bp.route("/posts/<int:id>/comments", methods=["GET"])
+@post_bp.route("/posts/comments/<int:id>", methods=["GET"])
 @jwt_required()
 def get_comments(id):
     """
@@ -155,7 +153,7 @@ def get_comments(id):
     response, status = PostService.get_comments(id)
     return jsonify(response), status
 
-@post_bp.route("/posts/<int:id>/comments", methods=["POST"])
+@post_bp.route("/posts/comments/<int:id>", methods=["POST"])
 @jwt_required()
 def add_comment(id):
     """
@@ -171,10 +169,3 @@ def add_comment(id):
     return jsonify(response), status_code
 
 
-@post_bp.route("/posts/search", methods=["GET"])
-@jwt_required()
-def search_post():
-    """
-    Route to search for posts with filter.
-    """
-    pass
