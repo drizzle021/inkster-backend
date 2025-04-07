@@ -1,8 +1,11 @@
 from app.models import User
 from app.extensions import db
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt
 import bcrypt
 from app.models.user import Role
+
+
+blacklist = set()
 
 class AuthService:
     @staticmethod
@@ -55,3 +58,19 @@ class AuthService:
         # use additional claims for more details -> create_access_token(identity=str(user.id), additional_claims={"username": user.username} )
         access_token = create_access_token(identity=str(user.id))
         return {"access_token": access_token}, 200
+    
+    
+    @staticmethod
+    def logout_user():
+        """
+        Logout a user and blacklist the access token.
+        """
+        jti = get_jwt()["jti"]
+        blacklist.add(jti)
+        return {"message": "Logged out successfully"}, 200
+
+    # @staticmethod
+    # @jwt.token_in_blocklist_loader
+    # def check_if_token_revoked(jwt_header, jwt_payload):
+    #     jti = jwt_payload["jti"]
+    #     return jti in blacklist

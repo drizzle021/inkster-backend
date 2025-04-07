@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.auth_service import AuthService
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -49,11 +51,15 @@ def login():
 
 
 @auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
 def logout():
     """
     Route to logout a user.
 
     """
     # logout_user()
-    
-    return jsonify({"message": "Logged out successfully"}), 200
+    identity = get_jwt_identity()
+    response, status_code = AuthService.logout_user(identity)
+
+    # return jsonify({"message": "Logged out successfully"}), 200
+    return jsonify(response), status_code
