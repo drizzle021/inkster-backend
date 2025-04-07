@@ -43,13 +43,15 @@ def update_pictures(id):
     return jsonify(response), status_code
 
 
-@user_bp.route("/users/<int:id>", methods=["POST"])
+@user_bp.route("/users/follow/<int:id>", methods=["POST"])
+@jwt_required()
 def follow_user(id):
     """
     Route to follow a user with a specific ID
     """
+    identity = get_jwt_identity()
 
-    response, status_code = UserService.get_user(id)
+    response, status_code = UserService.toggle_follow(id, identity)
     
     return jsonify(response), status_code
 

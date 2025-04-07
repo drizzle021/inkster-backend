@@ -2,7 +2,7 @@ from app.models import User, Post
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
-from app.models.user import saved_posts
+from app.models.user import follows, saved_posts
 
 class UserService:
     @staticmethod
@@ -94,3 +94,38 @@ class UserService:
             }
             for post in posts
         ], 200
+    
+
+    
+    @staticmethod
+    def toggle_follow(followed_id, follower_id):
+        """
+        Toggles follow for a user: adds follow if not followed, removes follow if already followed.
+        """
+        user = db.session.get(User, followed_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        exists = db.session.execute(
+            db.select(follows).where(
+                follows.c.followed_id == followed_id,
+                follows.c.follower_id == follower_id
+            )
+        ).first()
+
+        if exists:
+            # Unfollow it
+            db.session.execute(
+                follows.delete().where(
+                    follows.c.followed_id == followed_id,
+                    follows.c.follower_id == follower_id
+                )
+            )
+            db.session.commit()
+            return {"message": "User unfollowed successfully"}, 200
+
+        db.session.execute(
+            follows.insert().values(followed_id=followed_id, follower_id=follower_id)
+        )
+        db.session.commit()
+        return {"message": "User followed successfully"}, 200
