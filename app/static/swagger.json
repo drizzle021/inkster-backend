@@ -6,10 +6,6 @@
         "description": "Inkster is a platform for users to share, discover, and interact with illustrations, novels, and manga. This API provides endpoints for authentication, post management, reporting, and user interactions."    },
     "tags": [
         {
-            "name": "setup ? with tags and call update pictures",
-            "description": ""
-        },
-        {
             "name": "auth",
             "description": "Authentication related endpoints"
         },
@@ -28,6 +24,10 @@
         {
             "name": "map",
             "description": "Map management"
+        },
+        {
+            "name": "firebase",
+            "description": "Firebase Analytics"
         }
         
     ],
@@ -222,7 +222,7 @@
                     "required": false,
                     "schema": {
                       "type": "string",
-                      "example": ""
+                      "example": "fantasy,cute,magic"
                     }
                   }
                 ],
@@ -236,38 +236,46 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": {
-                                "type": "integer",
-                                "example": 1
-                              },
-                              "title": {
-                                "type": "string",
-                                "example": "My Art"
-                              },
-                              "post_type": {
-                                "type": "string",
-                                "example": "ILLUSTRATION"
-                              },
-                              "caption": {
-                                "type": "string",
-                                "example": "A nice drawing"
-                              },
-                              "description": {
-                                "type": "string",
-                                "example": "This is an illustration I made"
-                              },
-                              "is_spoilered": {
-                                "type": "boolean",
-                                "example": false
-                              },
-                              "software": {
-                                "type": "string",
-                                "example": "Photoshop"
-                              },
-                              "author": {
-                                "type": "integer",
-                                "example": 5
-                              }
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "example": "My Art"
+                                },
+                                "post_type": {
+                                    "type": "string",
+                                    "example": "ILLUSTRATION"
+                                },
+                                "caption": {
+                                    "type": "string",
+                                    "example": "A nice drawing"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "example": "This is an illustration I made"
+                                },
+                                "is_spoilered": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "software": {
+                                    "type": "string",
+                                    "example": "Photoshop"
+                                },
+                                "author": {
+                                    "type": "integer",
+                                    "example": 5
+                                },
+                                "tags": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "fantasy"
+                                    },
+                                    "example": ["fantasy", "digital", "dragon"]
+                                }
                             }
                           }
                         }
@@ -335,6 +343,15 @@
                                         "type": "string",
                                         "description": "chosen software",
                                         "example": "paint"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "description": "List of tags for the post (comma-separated or repeated)",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "happy"
+                                        },
+                                        "example": ["happy", "fun", "sketch"]
                                     }
                                 },
                                 "required": ["title", "post_type", "caption", "is_spoilered"]
@@ -471,74 +488,79 @@
                 "summary": "Edits a Post with ID",
                 "security": [
                     {
-                      "bearerAuth": []
+                    "bearerAuth": []
                     }
                 ],
                 "parameters": [
                     {
-                      "name": "id",
-                      "in": "path",
-                      "description": "ID of the post to edit",
-                      "required": true,
-                      "schema": {
+                    "name": "id",
+                    "in": "path",
+                    "description": "ID of the post to edit",
+                    "required": true,
+                    "schema": {
                         "type": "integer"
-                      }
                     }
-                  ],
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "description": "New title for the post"
-                                    },
-                                    "caption": {
-                                        "type": "string",
-                                        "description": "New caption for the post"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "description": "Updated description"
-                                    },
-                                    "software": {
-                                        "type": "string",
-                                        "description": "Updated software info"
-                                    },
-                                    "is_spoilered": {
-                                        "type": "boolean",
-                                        "description": "Whether the post is marked as a spoiler"
-                                    }
-                                }
+                    "application/x-www-form-urlencoded": {
+                        "schema": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                            "type": "string",
+                            "description": "New title for the post"
+                            },
+                            "caption": {
+                            "type": "string",
+                            "description": "New caption for the post"
+                            },
+                            "description": {
+                            "type": "string",
+                            "description": "Updated description"
+                            },
+                            "software": {
+                            "type": "string",
+                            "description": "Updated software info"
+                            },
+                            "is_spoilered": {
+                            "type": "boolean",
+                            "description": "Whether the post is marked as a spoiler"
+                            },
+                            "tags": {
+                            "type": "string",
+                            "description": "Comma-separated list of tags to assign to the post",
+                            "example": "happy,fun,sketch"
                             }
                         }
+                        }
+                    }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Post updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Post updated successfully"
-                                        }
-                                    }
-                                }
+                    "description": "Post updated successfully",
+                    "content": {
+                        "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                            "message": {
+                                "type": "string",
+                                "example": "Post updated successfully"
+                            }
                             }
                         }
+                        }
+                    }
                     },
                     "401": {
-                        "description": "Unauthorized"
+                    "description": "Unauthorized"
                     },
                     "404": {
-                        "description": "Post not found"
+                    "description": "Post not found"
                     }
                 }
             }
@@ -1276,7 +1298,7 @@
                 }
             }
         },
-        "/users/update-pictures/": {
+        "/users/update-pictures": {
             "put": {
                 "tags": ["users"],
                 "summary": "Update user pictures",
@@ -1322,18 +1344,169 @@
                 }
             }
         },
-        "/map": {
-            "get": {
-                "tags": ["map"],
-                "summary": "Open Map with Coordinates",
+        "/users/update-tags": {
+            "put": {
+                "tags": ["users"],
+                "summary": "Update tags for the current user",
                 "security": [
                     {
-                      "bearerAuth": []
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "tags": {
+                                        "type": "string",
+                                        "description": "Comma-separated tags to assign to the user",
+                                        "example": "digital art,cute,dark"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User tags updated successfully",
+                        "content": {
+                        "application/json": {
+                            "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                "type": "string",
+                                "example": "User tags updated successfully"
+                                }
+                            }
+                            }
+                        }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/map/nearby-exhibitions": {
+            "get": {
+                "tags": ["map"],
+                "summary": "Get nearby exhibitions",
+                "description": "Fetches nearby art galleries and museums using Google Places API based on user's current coordinates.",
+                "security": [
+                {
+                    "bearerAuth": []
+                }
+                ],
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude of the user's location",
+                        "required": true,
+                        "schema": {
+                        "type": "string",
+                        "example": "48.8566"
+                        }
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitude of the user's location",
+                        "required": true,
+                        "schema": {
+                        "type": "string",
+                        "example": "2.3522"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Search radius in meters (default: 5000)",
+                        "required": false,
+                        "schema": {
+                        "type": "integer",
+                        "example": 5000
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                    "description": "Success"
+                        "description": "List of nearby exhibitions",
+                        "content": {
+                        "application/json": {
+                            "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "example": "Louvre Museum"
+                                },
+                                "place_id": {
+                                    "type": "string",
+                                    "example": "ChIJb8Jg9pJU5kcR7GBcDHgV6bs"
+                                },
+                                "address": {
+                                    "type": "string",
+                                    "example": "Rue de Rivoli, 75001 Paris, France"
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "example": "museum"
+                                },
+                                "location": {
+                                    "type": "object",
+                                    "properties": {
+                                    "lat": {
+                                        "type": "number",
+                                        "example": 48.8606
+                                    },
+                                    "lng": {
+                                        "type": "number",
+                                        "example": 2.3376
+                                    }
+                                    }
+                                }
+                                }
+                            }
+                            }
+                        }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid latitude or longitude"
+                    },
+                    "500": {
+                        "description": "Server error or external API failure"
+                    }
+                }
+            }
+        },
+        "/firebase/log-event": {
+            "post": {
+                "tags": ["firebase"],
+                "summary": "",
+                "description": ".",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "Server error or external API failure"
                     }
                 }
             }
