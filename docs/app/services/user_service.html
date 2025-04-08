@@ -42,6 +42,12 @@
                         <li>
                                 <a class="function" href="#UserService.update_pictures">update_pictures</a>
                         </li>
+                        <li>
+                                <a class="function" href="#UserService.get_saved_posts">get_saved_posts</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UserService.toggle_follow">toggle_follow</a>
+                        </li>
                 </ul>
 
             </li>
@@ -66,85 +72,149 @@
 
                         <label class="view-source-button" for="mod-user_service-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">app.extensions</span> <span class="kn">import</span> <span class="n">db</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">werkzeug.utils</span> <span class="kn">import</span> <span class="n">secure_filename</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">UserService</span><span class="p">:</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">        Retrieves all users from the database.</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="p">[</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>            <span class="p">{</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>            <span class="p">}</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="p">]</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>    
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">        Retrieves a specific user from the database.</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">        Args:</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        </span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>        <span class="p">},</span> <span class="mi">200</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>        
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">        Args:</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">        </span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="sd">            files (dict): </span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>        
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>        <span class="k">if</span> <span class="s2">&quot;profile_picture&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>            <span class="n">file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s2">&quot;profile_picture&quot;</span><span class="p">]</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>            <span class="c1"># if allowed_file(file.filename):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>            <span class="c1">#     filename = secure_filename(file.filename)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>            <span class="c1">#     filepath = os.path.join(app.config[&quot;UPLOAD_FOLDER&quot;], filename)</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>            <span class="c1">#     file.save(filepath)</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>            <span class="c1">#     user.profile_picture = filepath  # Save the file path to the </span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>            
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>            <span class="n">filename</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>            <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;./static/uploads&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">filepath</span> 
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>        <span class="c1"># same for banner</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>        <span class="c1"># .</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>        <span class="c1"># .</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>
-</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile updated successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Post</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">app.extensions</span> <span class="kn">import</span> <span class="n">db</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">werkzeug.utils</span> <span class="kn">import</span> <span class="n">secure_filename</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">app.models.user</span> <span class="kn">import</span> <span class="n">follows</span><span class="p">,</span> <span class="n">saved_posts</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">endcode_filename</span><span class="p">,</span> <span class="n">validate_filename</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">current_app</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="k">class</span> <span class="nc">UserService</span><span class="p">:</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">        Retrieves all users from the database.</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>            <span class="p">{</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>            <span class="p">}</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>        <span class="p">],</span> <span class="mi">200</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">        Retrieves a specific user from the database.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">        Args:</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">        </span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>        <span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">profile_picture</span><span class="p">,</span> <span class="n">banner</span><span class="p">):</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="c1"># validate if file is right format</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="k">if</span> <span class="n">profile_picture</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="ow">or</span> <span class="n">banner</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="p">:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid file format&quot;</span><span class="p">},</span> <span class="mi">400</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="c1"># folder has to be set up in .env and created</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="c1"># app/... /</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="c1"># default: app\static\uploads</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">]):</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">])</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Server error: Upload folder does not exist&quot;</span><span class="p">},</span> <span class="mi">500</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="c1"># encode filenames into Uuid4 -&gt; Base64 + timestamp to avoid collisions</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>        <span class="c1"># save pictures to storage and save filename to database</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="k">if</span> <span class="n">profile_picture</span><span class="p">:</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="n">profile_picture</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>            
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="k">if</span> <span class="n">banner</span><span class="p">:</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">banner</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="n">banner</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>            
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">banner</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile successfully updated&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">def</span> <span class="nf">get_saved_posts</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="n">posts</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">Post</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saved_posts</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">saved_posts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>            <span class="p">{</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>                <span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">caption</span><span class="p">,</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>                <span class="s2">&quot;author_id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">author_id</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="p">}</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>            <span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="n">posts</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="p">],</span> <span class="mi">200</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">toggle_follow</span><span class="p">(</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="p">):</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        Toggles follow for a user: adds follow if not followed, removes follow if already followed.</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">followed_id</span><span class="p">)</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="n">exists</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">follows</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>            <span class="p">)</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>            <span class="c1"># Unfollow it</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>                <span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>            <span class="p">)</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User unfollowed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>            <span class="n">follows</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">followed_id</span><span class="o">=</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="o">=</span><span class="n">follower_id</span><span class="p">)</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="p">)</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User followed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
 </span></pre></div>
 
 
@@ -160,80 +230,141 @@
 
     </div>
     <a class="headerlink" href="#UserService"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService-7"><a href="#UserService-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">UserService</span><span class="p">:</span>
-</span><span id="UserService-8"><a href="#UserService-8"><span class="linenos"> 8</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService-9"><a href="#UserService-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
-</span><span id="UserService-10"><a href="#UserService-10"><span class="linenos">10</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService-11"><a href="#UserService-11"><span class="linenos">11</span></a><span class="sd">        Retrieves all users from the database.</span>
-</span><span id="UserService-12"><a href="#UserService-12"><span class="linenos">12</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService-13"><a href="#UserService-13"><span class="linenos">13</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="UserService-14"><a href="#UserService-14"><span class="linenos">14</span></a>        <span class="k">return</span> <span class="p">[</span>
-</span><span id="UserService-15"><a href="#UserService-15"><span class="linenos">15</span></a>            <span class="p">{</span>
-</span><span id="UserService-16"><a href="#UserService-16"><span class="linenos">16</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="UserService-17"><a href="#UserService-17"><span class="linenos">17</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="UserService-18"><a href="#UserService-18"><span class="linenos">18</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="UserService-19"><a href="#UserService-19"><span class="linenos">19</span></a>            <span class="p">}</span>
-</span><span id="UserService-20"><a href="#UserService-20"><span class="linenos">20</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
-</span><span id="UserService-21"><a href="#UserService-21"><span class="linenos">21</span></a>        <span class="p">]</span>
-</span><span id="UserService-22"><a href="#UserService-22"><span class="linenos">22</span></a>    
-</span><span id="UserService-23"><a href="#UserService-23"><span class="linenos">23</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService-24"><a href="#UserService-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
-</span><span id="UserService-25"><a href="#UserService-25"><span class="linenos">25</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService-26"><a href="#UserService-26"><span class="linenos">26</span></a><span class="sd">        Retrieves a specific user from the database.</span>
-</span><span id="UserService-27"><a href="#UserService-27"><span class="linenos">27</span></a>
-</span><span id="UserService-28"><a href="#UserService-28"><span class="linenos">28</span></a><span class="sd">        Args:</span>
-</span><span id="UserService-29"><a href="#UserService-29"><span class="linenos">29</span></a><span class="sd">        </span>
-</span><span id="UserService-30"><a href="#UserService-30"><span class="linenos">30</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
-</span><span id="UserService-31"><a href="#UserService-31"><span class="linenos">31</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService-32"><a href="#UserService-32"><span class="linenos">32</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="UserService-33"><a href="#UserService-33"><span class="linenos">33</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="UserService-34"><a href="#UserService-34"><span class="linenos">34</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="UserService-35"><a href="#UserService-35"><span class="linenos">35</span></a>        
-</span><span id="UserService-36"><a href="#UserService-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="UserService-37"><a href="#UserService-37"><span class="linenos">37</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="UserService-38"><a href="#UserService-38"><span class="linenos">38</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="UserService-39"><a href="#UserService-39"><span class="linenos">39</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="UserService-40"><a href="#UserService-40"><span class="linenos">40</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
-</span><span id="UserService-41"><a href="#UserService-41"><span class="linenos">41</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
-</span><span id="UserService-42"><a href="#UserService-42"><span class="linenos">42</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
-</span><span id="UserService-43"><a href="#UserService-43"><span class="linenos">43</span></a>
-</span><span id="UserService-44"><a href="#UserService-44"><span class="linenos">44</span></a>        <span class="p">},</span> <span class="mi">200</span>
-</span><span id="UserService-45"><a href="#UserService-45"><span class="linenos">45</span></a>        
-</span><span id="UserService-46"><a href="#UserService-46"><span class="linenos">46</span></a>
-</span><span id="UserService-47"><a href="#UserService-47"><span class="linenos">47</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService-48"><a href="#UserService-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
-</span><span id="UserService-49"><a href="#UserService-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService-50"><a href="#UserService-50"><span class="linenos">50</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
-</span><span id="UserService-51"><a href="#UserService-51"><span class="linenos">51</span></a>
-</span><span id="UserService-52"><a href="#UserService-52"><span class="linenos">52</span></a><span class="sd">        Args:</span>
-</span><span id="UserService-53"><a href="#UserService-53"><span class="linenos">53</span></a><span class="sd">        </span>
-</span><span id="UserService-54"><a href="#UserService-54"><span class="linenos">54</span></a><span class="sd">            files (dict): </span>
-</span><span id="UserService-55"><a href="#UserService-55"><span class="linenos">55</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService-56"><a href="#UserService-56"><span class="linenos">56</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="UserService-57"><a href="#UserService-57"><span class="linenos">57</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="UserService-58"><a href="#UserService-58"><span class="linenos">58</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="UserService-59"><a href="#UserService-59"><span class="linenos">59</span></a>        
-</span><span id="UserService-60"><a href="#UserService-60"><span class="linenos">60</span></a>        <span class="k">if</span> <span class="s2">&quot;profile_picture&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span id="UserService-61"><a href="#UserService-61"><span class="linenos">61</span></a>            <span class="n">file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s2">&quot;profile_picture&quot;</span><span class="p">]</span>
-</span><span id="UserService-62"><a href="#UserService-62"><span class="linenos">62</span></a>
-</span><span id="UserService-63"><a href="#UserService-63"><span class="linenos">63</span></a>            <span class="c1"># if allowed_file(file.filename):</span>
-</span><span id="UserService-64"><a href="#UserService-64"><span class="linenos">64</span></a>            <span class="c1">#     filename = secure_filename(file.filename)</span>
-</span><span id="UserService-65"><a href="#UserService-65"><span class="linenos">65</span></a>            <span class="c1">#     filepath = os.path.join(app.config[&quot;UPLOAD_FOLDER&quot;], filename)</span>
-</span><span id="UserService-66"><a href="#UserService-66"><span class="linenos">66</span></a>            <span class="c1">#     file.save(filepath)</span>
-</span><span id="UserService-67"><a href="#UserService-67"><span class="linenos">67</span></a>            <span class="c1">#     user.profile_picture = filepath  # Save the file path to the </span>
-</span><span id="UserService-68"><a href="#UserService-68"><span class="linenos">68</span></a>            
-</span><span id="UserService-69"><a href="#UserService-69"><span class="linenos">69</span></a>            <span class="n">filename</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
-</span><span id="UserService-70"><a href="#UserService-70"><span class="linenos">70</span></a>            <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;./static/uploads&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-</span><span id="UserService-71"><a href="#UserService-71"><span class="linenos">71</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-</span><span id="UserService-72"><a href="#UserService-72"><span class="linenos">72</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">filepath</span> 
-</span><span id="UserService-73"><a href="#UserService-73"><span class="linenos">73</span></a>
-</span><span id="UserService-74"><a href="#UserService-74"><span class="linenos">74</span></a>        <span class="c1"># same for banner</span>
-</span><span id="UserService-75"><a href="#UserService-75"><span class="linenos">75</span></a>        <span class="c1"># .</span>
-</span><span id="UserService-76"><a href="#UserService-76"><span class="linenos">76</span></a>        <span class="c1"># .</span>
-</span><span id="UserService-77"><a href="#UserService-77"><span class="linenos">77</span></a>
-</span><span id="UserService-78"><a href="#UserService-78"><span class="linenos">78</span></a>
-</span><span id="UserService-79"><a href="#UserService-79"><span class="linenos">79</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="UserService-80"><a href="#UserService-80"><span class="linenos">80</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile updated successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService-10"><a href="#UserService-10"><span class="linenos"> 10</span></a><span class="k">class</span> <span class="nc">UserService</span><span class="p">:</span>
+</span><span id="UserService-11"><a href="#UserService-11"><span class="linenos"> 11</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService-12"><a href="#UserService-12"><span class="linenos"> 12</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
+</span><span id="UserService-13"><a href="#UserService-13"><span class="linenos"> 13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService-14"><a href="#UserService-14"><span class="linenos"> 14</span></a><span class="sd">        Retrieves all users from the database.</span>
+</span><span id="UserService-15"><a href="#UserService-15"><span class="linenos"> 15</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService-16"><a href="#UserService-16"><span class="linenos"> 16</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="UserService-17"><a href="#UserService-17"><span class="linenos"> 17</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="UserService-18"><a href="#UserService-18"><span class="linenos"> 18</span></a>            <span class="p">{</span>
+</span><span id="UserService-19"><a href="#UserService-19"><span class="linenos"> 19</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService-20"><a href="#UserService-20"><span class="linenos"> 20</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="UserService-21"><a href="#UserService-21"><span class="linenos"> 21</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="UserService-22"><a href="#UserService-22"><span class="linenos"> 22</span></a>            <span class="p">}</span>
+</span><span id="UserService-23"><a href="#UserService-23"><span class="linenos"> 23</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
+</span><span id="UserService-24"><a href="#UserService-24"><span class="linenos"> 24</span></a>        <span class="p">],</span> <span class="mi">200</span>
+</span><span id="UserService-25"><a href="#UserService-25"><span class="linenos"> 25</span></a>    
+</span><span id="UserService-26"><a href="#UserService-26"><span class="linenos"> 26</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService-27"><a href="#UserService-27"><span class="linenos"> 27</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+</span><span id="UserService-28"><a href="#UserService-28"><span class="linenos"> 28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService-29"><a href="#UserService-29"><span class="linenos"> 29</span></a><span class="sd">        Retrieves a specific user from the database.</span>
+</span><span id="UserService-30"><a href="#UserService-30"><span class="linenos"> 30</span></a>
+</span><span id="UserService-31"><a href="#UserService-31"><span class="linenos"> 31</span></a><span class="sd">        Args:</span>
+</span><span id="UserService-32"><a href="#UserService-32"><span class="linenos"> 32</span></a><span class="sd">        </span>
+</span><span id="UserService-33"><a href="#UserService-33"><span class="linenos"> 33</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
+</span><span id="UserService-34"><a href="#UserService-34"><span class="linenos"> 34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService-35"><a href="#UserService-35"><span class="linenos"> 35</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="UserService-36"><a href="#UserService-36"><span class="linenos"> 36</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService-37"><a href="#UserService-37"><span class="linenos"> 37</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService-38"><a href="#UserService-38"><span class="linenos"> 38</span></a>        
+</span><span id="UserService-39"><a href="#UserService-39"><span class="linenos"> 39</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="UserService-40"><a href="#UserService-40"><span class="linenos"> 40</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService-41"><a href="#UserService-41"><span class="linenos"> 41</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="UserService-42"><a href="#UserService-42"><span class="linenos"> 42</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="UserService-43"><a href="#UserService-43"><span class="linenos"> 43</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
+</span><span id="UserService-44"><a href="#UserService-44"><span class="linenos"> 44</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
+</span><span id="UserService-45"><a href="#UserService-45"><span class="linenos"> 45</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
+</span><span id="UserService-46"><a href="#UserService-46"><span class="linenos"> 46</span></a>
+</span><span id="UserService-47"><a href="#UserService-47"><span class="linenos"> 47</span></a>        <span class="p">},</span> <span class="mi">200</span>
+</span><span id="UserService-48"><a href="#UserService-48"><span class="linenos"> 48</span></a>        
+</span><span id="UserService-49"><a href="#UserService-49"><span class="linenos"> 49</span></a>
+</span><span id="UserService-50"><a href="#UserService-50"><span class="linenos"> 50</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService-51"><a href="#UserService-51"><span class="linenos"> 51</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">profile_picture</span><span class="p">,</span> <span class="n">banner</span><span class="p">):</span>
+</span><span id="UserService-52"><a href="#UserService-52"><span class="linenos"> 52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService-53"><a href="#UserService-53"><span class="linenos"> 53</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
+</span><span id="UserService-54"><a href="#UserService-54"><span class="linenos"> 54</span></a>
+</span><span id="UserService-55"><a href="#UserService-55"><span class="linenos"> 55</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService-56"><a href="#UserService-56"><span class="linenos"> 56</span></a>        
+</span><span id="UserService-57"><a href="#UserService-57"><span class="linenos"> 57</span></a>
+</span><span id="UserService-58"><a href="#UserService-58"><span class="linenos"> 58</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="UserService-59"><a href="#UserService-59"><span class="linenos"> 59</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService-60"><a href="#UserService-60"><span class="linenos"> 60</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService-61"><a href="#UserService-61"><span class="linenos"> 61</span></a>        
+</span><span id="UserService-62"><a href="#UserService-62"><span class="linenos"> 62</span></a>
+</span><span id="UserService-63"><a href="#UserService-63"><span class="linenos"> 63</span></a>        <span class="c1"># validate if file is right format</span>
+</span><span id="UserService-64"><a href="#UserService-64"><span class="linenos"> 64</span></a>        <span class="k">if</span> <span class="n">profile_picture</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="ow">or</span> <span class="n">banner</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="p">:</span>
+</span><span id="UserService-65"><a href="#UserService-65"><span class="linenos"> 65</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid file format&quot;</span><span class="p">},</span> <span class="mi">400</span>
+</span><span id="UserService-66"><a href="#UserService-66"><span class="linenos"> 66</span></a>        
+</span><span id="UserService-67"><a href="#UserService-67"><span class="linenos"> 67</span></a>        <span class="c1"># folder has to be set up in .env and created</span>
+</span><span id="UserService-68"><a href="#UserService-68"><span class="linenos"> 68</span></a>        <span class="c1"># app/... /</span>
+</span><span id="UserService-69"><a href="#UserService-69"><span class="linenos"> 69</span></a>        <span class="c1"># default: app\static\uploads</span>
+</span><span id="UserService-70"><a href="#UserService-70"><span class="linenos"> 70</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">]):</span>
+</span><span id="UserService-71"><a href="#UserService-71"><span class="linenos"> 71</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">])</span>
+</span><span id="UserService-72"><a href="#UserService-72"><span class="linenos"> 72</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Server error: Upload folder does not exist&quot;</span><span class="p">},</span> <span class="mi">500</span>
+</span><span id="UserService-73"><a href="#UserService-73"><span class="linenos"> 73</span></a>        
+</span><span id="UserService-74"><a href="#UserService-74"><span class="linenos"> 74</span></a>        
+</span><span id="UserService-75"><a href="#UserService-75"><span class="linenos"> 75</span></a>        <span class="c1"># encode filenames into Uuid4 -&gt; Base64 + timestamp to avoid collisions</span>
+</span><span id="UserService-76"><a href="#UserService-76"><span class="linenos"> 76</span></a>        <span class="c1"># save pictures to storage and save filename to database</span>
+</span><span id="UserService-77"><a href="#UserService-77"><span class="linenos"> 77</span></a>        <span class="k">if</span> <span class="n">profile_picture</span><span class="p">:</span>
+</span><span id="UserService-78"><a href="#UserService-78"><span class="linenos"> 78</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="UserService-79"><a href="#UserService-79"><span class="linenos"> 79</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="UserService-80"><a href="#UserService-80"><span class="linenos"> 80</span></a>            <span class="n">profile_picture</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="UserService-81"><a href="#UserService-81"><span class="linenos"> 81</span></a>            
+</span><span id="UserService-82"><a href="#UserService-82"><span class="linenos"> 82</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="UserService-83"><a href="#UserService-83"><span class="linenos"> 83</span></a>
+</span><span id="UserService-84"><a href="#UserService-84"><span class="linenos"> 84</span></a>        <span class="k">if</span> <span class="n">banner</span><span class="p">:</span>
+</span><span id="UserService-85"><a href="#UserService-85"><span class="linenos"> 85</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">banner</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="UserService-86"><a href="#UserService-86"><span class="linenos"> 86</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="UserService-87"><a href="#UserService-87"><span class="linenos"> 87</span></a>            <span class="n">banner</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="UserService-88"><a href="#UserService-88"><span class="linenos"> 88</span></a>            
+</span><span id="UserService-89"><a href="#UserService-89"><span class="linenos"> 89</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">banner</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="UserService-90"><a href="#UserService-90"><span class="linenos"> 90</span></a>
+</span><span id="UserService-91"><a href="#UserService-91"><span class="linenos"> 91</span></a>
+</span><span id="UserService-92"><a href="#UserService-92"><span class="linenos"> 92</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService-93"><a href="#UserService-93"><span class="linenos"> 93</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile successfully updated&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="UserService-94"><a href="#UserService-94"><span class="linenos"> 94</span></a>
+</span><span id="UserService-95"><a href="#UserService-95"><span class="linenos"> 95</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService-96"><a href="#UserService-96"><span class="linenos"> 96</span></a>    <span class="k">def</span> <span class="nf">get_saved_posts</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="UserService-97"><a href="#UserService-97"><span class="linenos"> 97</span></a>        <span class="n">posts</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService-98"><a href="#UserService-98"><span class="linenos"> 98</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">Post</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saved_posts</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">saved_posts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="UserService-99"><a href="#UserService-99"><span class="linenos"> 99</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="UserService-100"><a href="#UserService-100"><span class="linenos">100</span></a>
+</span><span id="UserService-101"><a href="#UserService-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="UserService-102"><a href="#UserService-102"><span class="linenos">102</span></a>            <span class="p">{</span>
+</span><span id="UserService-103"><a href="#UserService-103"><span class="linenos">103</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService-104"><a href="#UserService-104"><span class="linenos">104</span></a>                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+</span><span id="UserService-105"><a href="#UserService-105"><span class="linenos">105</span></a>                <span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">caption</span><span class="p">,</span>
+</span><span id="UserService-106"><a href="#UserService-106"><span class="linenos">106</span></a>                <span class="s2">&quot;author_id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">author_id</span>
+</span><span id="UserService-107"><a href="#UserService-107"><span class="linenos">107</span></a>            <span class="p">}</span>
+</span><span id="UserService-108"><a href="#UserService-108"><span class="linenos">108</span></a>            <span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="n">posts</span>
+</span><span id="UserService-109"><a href="#UserService-109"><span class="linenos">109</span></a>        <span class="p">],</span> <span class="mi">200</span>
+</span><span id="UserService-110"><a href="#UserService-110"><span class="linenos">110</span></a>    
+</span><span id="UserService-111"><a href="#UserService-111"><span class="linenos">111</span></a>
+</span><span id="UserService-112"><a href="#UserService-112"><span class="linenos">112</span></a>    
+</span><span id="UserService-113"><a href="#UserService-113"><span class="linenos">113</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService-114"><a href="#UserService-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">toggle_follow</span><span class="p">(</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="p">):</span>
+</span><span id="UserService-115"><a href="#UserService-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService-116"><a href="#UserService-116"><span class="linenos">116</span></a><span class="sd">        Toggles follow for a user: adds follow if not followed, removes follow if already followed.</span>
+</span><span id="UserService-117"><a href="#UserService-117"><span class="linenos">117</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService-118"><a href="#UserService-118"><span class="linenos">118</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">followed_id</span><span class="p">)</span>
+</span><span id="UserService-119"><a href="#UserService-119"><span class="linenos">119</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService-120"><a href="#UserService-120"><span class="linenos">120</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService-121"><a href="#UserService-121"><span class="linenos">121</span></a>
+</span><span id="UserService-122"><a href="#UserService-122"><span class="linenos">122</span></a>        <span class="n">exists</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService-123"><a href="#UserService-123"><span class="linenos">123</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">follows</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="UserService-124"><a href="#UserService-124"><span class="linenos">124</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="UserService-125"><a href="#UserService-125"><span class="linenos">125</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="UserService-126"><a href="#UserService-126"><span class="linenos">126</span></a>            <span class="p">)</span>
+</span><span id="UserService-127"><a href="#UserService-127"><span class="linenos">127</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="UserService-128"><a href="#UserService-128"><span class="linenos">128</span></a>
+</span><span id="UserService-129"><a href="#UserService-129"><span class="linenos">129</span></a>        <span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+</span><span id="UserService-130"><a href="#UserService-130"><span class="linenos">130</span></a>            <span class="c1"># Unfollow it</span>
+</span><span id="UserService-131"><a href="#UserService-131"><span class="linenos">131</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService-132"><a href="#UserService-132"><span class="linenos">132</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="UserService-133"><a href="#UserService-133"><span class="linenos">133</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="UserService-134"><a href="#UserService-134"><span class="linenos">134</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="UserService-135"><a href="#UserService-135"><span class="linenos">135</span></a>                <span class="p">)</span>
+</span><span id="UserService-136"><a href="#UserService-136"><span class="linenos">136</span></a>            <span class="p">)</span>
+</span><span id="UserService-137"><a href="#UserService-137"><span class="linenos">137</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService-138"><a href="#UserService-138"><span class="linenos">138</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User unfollowed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="UserService-139"><a href="#UserService-139"><span class="linenos">139</span></a>
+</span><span id="UserService-140"><a href="#UserService-140"><span class="linenos">140</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService-141"><a href="#UserService-141"><span class="linenos">141</span></a>            <span class="n">follows</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">followed_id</span><span class="o">=</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="o">=</span><span class="n">follower_id</span><span class="p">)</span>
+</span><span id="UserService-142"><a href="#UserService-142"><span class="linenos">142</span></a>        <span class="p">)</span>
+</span><span id="UserService-143"><a href="#UserService-143"><span class="linenos">143</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService-144"><a href="#UserService-144"><span class="linenos">144</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User followed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
 </span></pre></div>
 
 
@@ -251,20 +382,20 @@
 
     </div>
     <a class="headerlink" href="#UserService.get_all_users"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.get_all_users-8"><a href="#UserService.get_all_users-8"><span class="linenos"> 8</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService.get_all_users-9"><a href="#UserService.get_all_users-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
-</span><span id="UserService.get_all_users-10"><a href="#UserService.get_all_users-10"><span class="linenos">10</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService.get_all_users-11"><a href="#UserService.get_all_users-11"><span class="linenos">11</span></a><span class="sd">        Retrieves all users from the database.</span>
-</span><span id="UserService.get_all_users-12"><a href="#UserService.get_all_users-12"><span class="linenos">12</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService.get_all_users-13"><a href="#UserService.get_all_users-13"><span class="linenos">13</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="UserService.get_all_users-14"><a href="#UserService.get_all_users-14"><span class="linenos">14</span></a>        <span class="k">return</span> <span class="p">[</span>
-</span><span id="UserService.get_all_users-15"><a href="#UserService.get_all_users-15"><span class="linenos">15</span></a>            <span class="p">{</span>
-</span><span id="UserService.get_all_users-16"><a href="#UserService.get_all_users-16"><span class="linenos">16</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="UserService.get_all_users-17"><a href="#UserService.get_all_users-17"><span class="linenos">17</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="UserService.get_all_users-18"><a href="#UserService.get_all_users-18"><span class="linenos">18</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="UserService.get_all_users-19"><a href="#UserService.get_all_users-19"><span class="linenos">19</span></a>            <span class="p">}</span>
-</span><span id="UserService.get_all_users-20"><a href="#UserService.get_all_users-20"><span class="linenos">20</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
-</span><span id="UserService.get_all_users-21"><a href="#UserService.get_all_users-21"><span class="linenos">21</span></a>        <span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.get_all_users-11"><a href="#UserService.get_all_users-11"><span class="linenos">11</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService.get_all_users-12"><a href="#UserService.get_all_users-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="nf">get_all_users</span><span class="p">():</span>
+</span><span id="UserService.get_all_users-13"><a href="#UserService.get_all_users-13"><span class="linenos">13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService.get_all_users-14"><a href="#UserService.get_all_users-14"><span class="linenos">14</span></a><span class="sd">        Retrieves all users from the database.</span>
+</span><span id="UserService.get_all_users-15"><a href="#UserService.get_all_users-15"><span class="linenos">15</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService.get_all_users-16"><a href="#UserService.get_all_users-16"><span class="linenos">16</span></a>        <span class="n">users</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="UserService.get_all_users-17"><a href="#UserService.get_all_users-17"><span class="linenos">17</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="UserService.get_all_users-18"><a href="#UserService.get_all_users-18"><span class="linenos">18</span></a>            <span class="p">{</span>
+</span><span id="UserService.get_all_users-19"><a href="#UserService.get_all_users-19"><span class="linenos">19</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService.get_all_users-20"><a href="#UserService.get_all_users-20"><span class="linenos">20</span></a>                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="UserService.get_all_users-21"><a href="#UserService.get_all_users-21"><span class="linenos">21</span></a>                <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="UserService.get_all_users-22"><a href="#UserService.get_all_users-22"><span class="linenos">22</span></a>            <span class="p">}</span>
+</span><span id="UserService.get_all_users-23"><a href="#UserService.get_all_users-23"><span class="linenos">23</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
+</span><span id="UserService.get_all_users-24"><a href="#UserService.get_all_users-24"><span class="linenos">24</span></a>        <span class="p">],</span> <span class="mi">200</span>
 </span></pre></div>
 
 
@@ -285,28 +416,28 @@
 
     </div>
     <a class="headerlink" href="#UserService.get_user"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.get_user-23"><a href="#UserService.get_user-23"><span class="linenos">23</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService.get_user-24"><a href="#UserService.get_user-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
-</span><span id="UserService.get_user-25"><a href="#UserService.get_user-25"><span class="linenos">25</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService.get_user-26"><a href="#UserService.get_user-26"><span class="linenos">26</span></a><span class="sd">        Retrieves a specific user from the database.</span>
-</span><span id="UserService.get_user-27"><a href="#UserService.get_user-27"><span class="linenos">27</span></a>
-</span><span id="UserService.get_user-28"><a href="#UserService.get_user-28"><span class="linenos">28</span></a><span class="sd">        Args:</span>
-</span><span id="UserService.get_user-29"><a href="#UserService.get_user-29"><span class="linenos">29</span></a><span class="sd">        </span>
-</span><span id="UserService.get_user-30"><a href="#UserService.get_user-30"><span class="linenos">30</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
-</span><span id="UserService.get_user-31"><a href="#UserService.get_user-31"><span class="linenos">31</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService.get_user-32"><a href="#UserService.get_user-32"><span class="linenos">32</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="UserService.get_user-33"><a href="#UserService.get_user-33"><span class="linenos">33</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="UserService.get_user-34"><a href="#UserService.get_user-34"><span class="linenos">34</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="UserService.get_user-35"><a href="#UserService.get_user-35"><span class="linenos">35</span></a>        
-</span><span id="UserService.get_user-36"><a href="#UserService.get_user-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="UserService.get_user-37"><a href="#UserService.get_user-37"><span class="linenos">37</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="UserService.get_user-38"><a href="#UserService.get_user-38"><span class="linenos">38</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-</span><span id="UserService.get_user-39"><a href="#UserService.get_user-39"><span class="linenos">39</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
-</span><span id="UserService.get_user-40"><a href="#UserService.get_user-40"><span class="linenos">40</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
-</span><span id="UserService.get_user-41"><a href="#UserService.get_user-41"><span class="linenos">41</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
-</span><span id="UserService.get_user-42"><a href="#UserService.get_user-42"><span class="linenos">42</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
-</span><span id="UserService.get_user-43"><a href="#UserService.get_user-43"><span class="linenos">43</span></a>
-</span><span id="UserService.get_user-44"><a href="#UserService.get_user-44"><span class="linenos">44</span></a>        <span class="p">},</span> <span class="mi">200</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.get_user-26"><a href="#UserService.get_user-26"><span class="linenos">26</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService.get_user-27"><a href="#UserService.get_user-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+</span><span id="UserService.get_user-28"><a href="#UserService.get_user-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService.get_user-29"><a href="#UserService.get_user-29"><span class="linenos">29</span></a><span class="sd">        Retrieves a specific user from the database.</span>
+</span><span id="UserService.get_user-30"><a href="#UserService.get_user-30"><span class="linenos">30</span></a>
+</span><span id="UserService.get_user-31"><a href="#UserService.get_user-31"><span class="linenos">31</span></a><span class="sd">        Args:</span>
+</span><span id="UserService.get_user-32"><a href="#UserService.get_user-32"><span class="linenos">32</span></a><span class="sd">        </span>
+</span><span id="UserService.get_user-33"><a href="#UserService.get_user-33"><span class="linenos">33</span></a><span class="sd">            id (int): ID of the user to be retrieved.</span>
+</span><span id="UserService.get_user-34"><a href="#UserService.get_user-34"><span class="linenos">34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService.get_user-35"><a href="#UserService.get_user-35"><span class="linenos">35</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="UserService.get_user-36"><a href="#UserService.get_user-36"><span class="linenos">36</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService.get_user-37"><a href="#UserService.get_user-37"><span class="linenos">37</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService.get_user-38"><a href="#UserService.get_user-38"><span class="linenos">38</span></a>        
+</span><span id="UserService.get_user-39"><a href="#UserService.get_user-39"><span class="linenos">39</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="UserService.get_user-40"><a href="#UserService.get_user-40"><span class="linenos">40</span></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService.get_user-41"><a href="#UserService.get_user-41"><span class="linenos">41</span></a>            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+</span><span id="UserService.get_user-42"><a href="#UserService.get_user-42"><span class="linenos">42</span></a>            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+</span><span id="UserService.get_user-43"><a href="#UserService.get_user-43"><span class="linenos">43</span></a>            <span class="s2">&quot;profile_picture&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span><span class="p">,</span>
+</span><span id="UserService.get_user-44"><a href="#UserService.get_user-44"><span class="linenos">44</span></a>            <span class="s2">&quot;banner&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">banner</span><span class="p">,</span>
+</span><span id="UserService.get_user-45"><a href="#UserService.get_user-45"><span class="linenos">45</span></a>            <span class="c1"># &quot;posts&quot;: user.posts,</span>
+</span><span id="UserService.get_user-46"><a href="#UserService.get_user-46"><span class="linenos">46</span></a>
+</span><span id="UserService.get_user-47"><a href="#UserService.get_user-47"><span class="linenos">47</span></a>        <span class="p">},</span> <span class="mi">200</span>
 </span></pre></div>
 
 
@@ -326,55 +457,145 @@
                     <div class="decorator decorator-staticmethod">@staticmethod</div>
 
         <span class="def">def</span>
-        <span class="name">update_pictures</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">files</span></span><span class="return-annotation">):</span></span>
+        <span class="name">update_pictures</span><span class="signature pdoc-code condensed">(<span class="param"><span class="nb">id</span>, </span><span class="param"><span class="n">profile_picture</span>, </span><span class="param"><span class="n">banner</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="UserService.update_pictures-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#UserService.update_pictures"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.update_pictures-47"><a href="#UserService.update_pictures-47"><span class="linenos">47</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="UserService.update_pictures-48"><a href="#UserService.update_pictures-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
-</span><span id="UserService.update_pictures-49"><a href="#UserService.update_pictures-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="UserService.update_pictures-50"><a href="#UserService.update_pictures-50"><span class="linenos">50</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
-</span><span id="UserService.update_pictures-51"><a href="#UserService.update_pictures-51"><span class="linenos">51</span></a>
-</span><span id="UserService.update_pictures-52"><a href="#UserService.update_pictures-52"><span class="linenos">52</span></a><span class="sd">        Args:</span>
-</span><span id="UserService.update_pictures-53"><a href="#UserService.update_pictures-53"><span class="linenos">53</span></a><span class="sd">        </span>
-</span><span id="UserService.update_pictures-54"><a href="#UserService.update_pictures-54"><span class="linenos">54</span></a><span class="sd">            files (dict): </span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.update_pictures-50"><a href="#UserService.update_pictures-50"><span class="linenos">50</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService.update_pictures-51"><a href="#UserService.update_pictures-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">update_pictures</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">profile_picture</span><span class="p">,</span> <span class="n">banner</span><span class="p">):</span>
+</span><span id="UserService.update_pictures-52"><a href="#UserService.update_pictures-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService.update_pictures-53"><a href="#UserService.update_pictures-53"><span class="linenos">53</span></a><span class="sd">        Updates the user&#39;s profile picture or banner</span>
+</span><span id="UserService.update_pictures-54"><a href="#UserService.update_pictures-54"><span class="linenos">54</span></a>
 </span><span id="UserService.update_pictures-55"><a href="#UserService.update_pictures-55"><span class="linenos">55</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="UserService.update_pictures-56"><a href="#UserService.update_pictures-56"><span class="linenos">56</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
-</span><span id="UserService.update_pictures-57"><a href="#UserService.update_pictures-57"><span class="linenos">57</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="UserService.update_pictures-58"><a href="#UserService.update_pictures-58"><span class="linenos">58</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
-</span><span id="UserService.update_pictures-59"><a href="#UserService.update_pictures-59"><span class="linenos">59</span></a>        
-</span><span id="UserService.update_pictures-60"><a href="#UserService.update_pictures-60"><span class="linenos">60</span></a>        <span class="k">if</span> <span class="s2">&quot;profile_picture&quot;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span id="UserService.update_pictures-61"><a href="#UserService.update_pictures-61"><span class="linenos">61</span></a>            <span class="n">file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s2">&quot;profile_picture&quot;</span><span class="p">]</span>
+</span><span id="UserService.update_pictures-56"><a href="#UserService.update_pictures-56"><span class="linenos">56</span></a>        
+</span><span id="UserService.update_pictures-57"><a href="#UserService.update_pictures-57"><span class="linenos">57</span></a>
+</span><span id="UserService.update_pictures-58"><a href="#UserService.update_pictures-58"><span class="linenos">58</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-59"><a href="#UserService.update_pictures-59"><span class="linenos">59</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService.update_pictures-60"><a href="#UserService.update_pictures-60"><span class="linenos">60</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService.update_pictures-61"><a href="#UserService.update_pictures-61"><span class="linenos">61</span></a>        
 </span><span id="UserService.update_pictures-62"><a href="#UserService.update_pictures-62"><span class="linenos">62</span></a>
-</span><span id="UserService.update_pictures-63"><a href="#UserService.update_pictures-63"><span class="linenos">63</span></a>            <span class="c1"># if allowed_file(file.filename):</span>
-</span><span id="UserService.update_pictures-64"><a href="#UserService.update_pictures-64"><span class="linenos">64</span></a>            <span class="c1">#     filename = secure_filename(file.filename)</span>
-</span><span id="UserService.update_pictures-65"><a href="#UserService.update_pictures-65"><span class="linenos">65</span></a>            <span class="c1">#     filepath = os.path.join(app.config[&quot;UPLOAD_FOLDER&quot;], filename)</span>
-</span><span id="UserService.update_pictures-66"><a href="#UserService.update_pictures-66"><span class="linenos">66</span></a>            <span class="c1">#     file.save(filepath)</span>
-</span><span id="UserService.update_pictures-67"><a href="#UserService.update_pictures-67"><span class="linenos">67</span></a>            <span class="c1">#     user.profile_picture = filepath  # Save the file path to the </span>
-</span><span id="UserService.update_pictures-68"><a href="#UserService.update_pictures-68"><span class="linenos">68</span></a>            
-</span><span id="UserService.update_pictures-69"><a href="#UserService.update_pictures-69"><span class="linenos">69</span></a>            <span class="n">filename</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
-</span><span id="UserService.update_pictures-70"><a href="#UserService.update_pictures-70"><span class="linenos">70</span></a>            <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;./static/uploads&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-</span><span id="UserService.update_pictures-71"><a href="#UserService.update_pictures-71"><span class="linenos">71</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-</span><span id="UserService.update_pictures-72"><a href="#UserService.update_pictures-72"><span class="linenos">72</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">filepath</span> 
-</span><span id="UserService.update_pictures-73"><a href="#UserService.update_pictures-73"><span class="linenos">73</span></a>
-</span><span id="UserService.update_pictures-74"><a href="#UserService.update_pictures-74"><span class="linenos">74</span></a>        <span class="c1"># same for banner</span>
-</span><span id="UserService.update_pictures-75"><a href="#UserService.update_pictures-75"><span class="linenos">75</span></a>        <span class="c1"># .</span>
-</span><span id="UserService.update_pictures-76"><a href="#UserService.update_pictures-76"><span class="linenos">76</span></a>        <span class="c1"># .</span>
-</span><span id="UserService.update_pictures-77"><a href="#UserService.update_pictures-77"><span class="linenos">77</span></a>
-</span><span id="UserService.update_pictures-78"><a href="#UserService.update_pictures-78"><span class="linenos">78</span></a>
-</span><span id="UserService.update_pictures-79"><a href="#UserService.update_pictures-79"><span class="linenos">79</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="UserService.update_pictures-80"><a href="#UserService.update_pictures-80"><span class="linenos">80</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile updated successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="UserService.update_pictures-63"><a href="#UserService.update_pictures-63"><span class="linenos">63</span></a>        <span class="c1"># validate if file is right format</span>
+</span><span id="UserService.update_pictures-64"><a href="#UserService.update_pictures-64"><span class="linenos">64</span></a>        <span class="k">if</span> <span class="n">profile_picture</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="ow">or</span> <span class="n">banner</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validate_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="p">:</span>
+</span><span id="UserService.update_pictures-65"><a href="#UserService.update_pictures-65"><span class="linenos">65</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid file format&quot;</span><span class="p">},</span> <span class="mi">400</span>
+</span><span id="UserService.update_pictures-66"><a href="#UserService.update_pictures-66"><span class="linenos">66</span></a>        
+</span><span id="UserService.update_pictures-67"><a href="#UserService.update_pictures-67"><span class="linenos">67</span></a>        <span class="c1"># folder has to be set up in .env and created</span>
+</span><span id="UserService.update_pictures-68"><a href="#UserService.update_pictures-68"><span class="linenos">68</span></a>        <span class="c1"># app/... /</span>
+</span><span id="UserService.update_pictures-69"><a href="#UserService.update_pictures-69"><span class="linenos">69</span></a>        <span class="c1"># default: app\static\uploads</span>
+</span><span id="UserService.update_pictures-70"><a href="#UserService.update_pictures-70"><span class="linenos">70</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">]):</span>
+</span><span id="UserService.update_pictures-71"><a href="#UserService.update_pictures-71"><span class="linenos">71</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">])</span>
+</span><span id="UserService.update_pictures-72"><a href="#UserService.update_pictures-72"><span class="linenos">72</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Server error: Upload folder does not exist&quot;</span><span class="p">},</span> <span class="mi">500</span>
+</span><span id="UserService.update_pictures-73"><a href="#UserService.update_pictures-73"><span class="linenos">73</span></a>        
+</span><span id="UserService.update_pictures-74"><a href="#UserService.update_pictures-74"><span class="linenos">74</span></a>        
+</span><span id="UserService.update_pictures-75"><a href="#UserService.update_pictures-75"><span class="linenos">75</span></a>        <span class="c1"># encode filenames into Uuid4 -&gt; Base64 + timestamp to avoid collisions</span>
+</span><span id="UserService.update_pictures-76"><a href="#UserService.update_pictures-76"><span class="linenos">76</span></a>        <span class="c1"># save pictures to storage and save filename to database</span>
+</span><span id="UserService.update_pictures-77"><a href="#UserService.update_pictures-77"><span class="linenos">77</span></a>        <span class="k">if</span> <span class="n">profile_picture</span><span class="p">:</span>
+</span><span id="UserService.update_pictures-78"><a href="#UserService.update_pictures-78"><span class="linenos">78</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">profile_picture</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-79"><a href="#UserService.update_pictures-79"><span class="linenos">79</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-80"><a href="#UserService.update_pictures-80"><span class="linenos">80</span></a>            <span class="n">profile_picture</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-81"><a href="#UserService.update_pictures-81"><span class="linenos">81</span></a>            
+</span><span id="UserService.update_pictures-82"><a href="#UserService.update_pictures-82"><span class="linenos">82</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">profile_picture</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="UserService.update_pictures-83"><a href="#UserService.update_pictures-83"><span class="linenos">83</span></a>
+</span><span id="UserService.update_pictures-84"><a href="#UserService.update_pictures-84"><span class="linenos">84</span></a>        <span class="k">if</span> <span class="n">banner</span><span class="p">:</span>
+</span><span id="UserService.update_pictures-85"><a href="#UserService.update_pictures-85"><span class="linenos">85</span></a>            <span class="n">encoded_filename</span> <span class="o">=</span> <span class="n">endcode_filename</span><span class="p">(</span><span class="n">banner</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-86"><a href="#UserService.update_pictures-86"><span class="linenos">86</span></a>            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;UPLOAD_FOLDER&quot;</span><span class="p">],</span> <span class="n">encoded_filename</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-87"><a href="#UserService.update_pictures-87"><span class="linenos">87</span></a>            <span class="n">banner</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</span><span id="UserService.update_pictures-88"><a href="#UserService.update_pictures-88"><span class="linenos">88</span></a>            
+</span><span id="UserService.update_pictures-89"><a href="#UserService.update_pictures-89"><span class="linenos">89</span></a>            <span class="n">user</span><span class="o">.</span><span class="n">banner</span> <span class="o">=</span> <span class="n">encoded_filename</span> 
+</span><span id="UserService.update_pictures-90"><a href="#UserService.update_pictures-90"><span class="linenos">90</span></a>
+</span><span id="UserService.update_pictures-91"><a href="#UserService.update_pictures-91"><span class="linenos">91</span></a>
+</span><span id="UserService.update_pictures-92"><a href="#UserService.update_pictures-92"><span class="linenos">92</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService.update_pictures-93"><a href="#UserService.update_pictures-93"><span class="linenos">93</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Profile successfully updated&quot;</span><span class="p">},</span> <span class="mi">200</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Updates the user's profile picture or banner</p>
+</div>
 
-<p>Args:</p>
 
-<pre><code>files (dict):
-</code></pre>
+                            </div>
+                            <div id="UserService.get_saved_posts" class="classattr">
+                                        <input id="UserService.get_saved_posts-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator decorator-staticmethod">@staticmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">get_saved_posts</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">user_id</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="UserService.get_saved_posts-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#UserService.get_saved_posts"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.get_saved_posts-95"><a href="#UserService.get_saved_posts-95"><span class="linenos"> 95</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService.get_saved_posts-96"><a href="#UserService.get_saved_posts-96"><span class="linenos"> 96</span></a>    <span class="k">def</span> <span class="nf">get_saved_posts</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="UserService.get_saved_posts-97"><a href="#UserService.get_saved_posts-97"><span class="linenos"> 97</span></a>        <span class="n">posts</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService.get_saved_posts-98"><a href="#UserService.get_saved_posts-98"><span class="linenos"> 98</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">Post</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">saved_posts</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">saved_posts</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="UserService.get_saved_posts-99"><a href="#UserService.get_saved_posts-99"><span class="linenos"> 99</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="UserService.get_saved_posts-100"><a href="#UserService.get_saved_posts-100"><span class="linenos">100</span></a>
+</span><span id="UserService.get_saved_posts-101"><a href="#UserService.get_saved_posts-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="p">[</span>
+</span><span id="UserService.get_saved_posts-102"><a href="#UserService.get_saved_posts-102"><span class="linenos">102</span></a>            <span class="p">{</span>
+</span><span id="UserService.get_saved_posts-103"><a href="#UserService.get_saved_posts-103"><span class="linenos">103</span></a>                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span id="UserService.get_saved_posts-104"><a href="#UserService.get_saved_posts-104"><span class="linenos">104</span></a>                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+</span><span id="UserService.get_saved_posts-105"><a href="#UserService.get_saved_posts-105"><span class="linenos">105</span></a>                <span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">caption</span><span class="p">,</span>
+</span><span id="UserService.get_saved_posts-106"><a href="#UserService.get_saved_posts-106"><span class="linenos">106</span></a>                <span class="s2">&quot;author_id&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">author_id</span>
+</span><span id="UserService.get_saved_posts-107"><a href="#UserService.get_saved_posts-107"><span class="linenos">107</span></a>            <span class="p">}</span>
+</span><span id="UserService.get_saved_posts-108"><a href="#UserService.get_saved_posts-108"><span class="linenos">108</span></a>            <span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="n">posts</span>
+</span><span id="UserService.get_saved_posts-109"><a href="#UserService.get_saved_posts-109"><span class="linenos">109</span></a>        <span class="p">],</span> <span class="mi">200</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="UserService.toggle_follow" class="classattr">
+                                        <input id="UserService.toggle_follow-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator decorator-staticmethod">@staticmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">toggle_follow</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">followed_id</span>, </span><span class="param"><span class="n">follower_id</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="UserService.toggle_follow-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#UserService.toggle_follow"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserService.toggle_follow-113"><a href="#UserService.toggle_follow-113"><span class="linenos">113</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="UserService.toggle_follow-114"><a href="#UserService.toggle_follow-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">toggle_follow</span><span class="p">(</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="p">):</span>
+</span><span id="UserService.toggle_follow-115"><a href="#UserService.toggle_follow-115"><span class="linenos">115</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="UserService.toggle_follow-116"><a href="#UserService.toggle_follow-116"><span class="linenos">116</span></a><span class="sd">        Toggles follow for a user: adds follow if not followed, removes follow if already followed.</span>
+</span><span id="UserService.toggle_follow-117"><a href="#UserService.toggle_follow-117"><span class="linenos">117</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="UserService.toggle_follow-118"><a href="#UserService.toggle_follow-118"><span class="linenos">118</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">followed_id</span><span class="p">)</span>
+</span><span id="UserService.toggle_follow-119"><a href="#UserService.toggle_follow-119"><span class="linenos">119</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="UserService.toggle_follow-120"><a href="#UserService.toggle_follow-120"><span class="linenos">120</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;User not found&quot;</span><span class="p">},</span> <span class="mi">404</span>
+</span><span id="UserService.toggle_follow-121"><a href="#UserService.toggle_follow-121"><span class="linenos">121</span></a>
+</span><span id="UserService.toggle_follow-122"><a href="#UserService.toggle_follow-122"><span class="linenos">122</span></a>        <span class="n">exists</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService.toggle_follow-123"><a href="#UserService.toggle_follow-123"><span class="linenos">123</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">follows</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="UserService.toggle_follow-124"><a href="#UserService.toggle_follow-124"><span class="linenos">124</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="UserService.toggle_follow-125"><a href="#UserService.toggle_follow-125"><span class="linenos">125</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="UserService.toggle_follow-126"><a href="#UserService.toggle_follow-126"><span class="linenos">126</span></a>            <span class="p">)</span>
+</span><span id="UserService.toggle_follow-127"><a href="#UserService.toggle_follow-127"><span class="linenos">127</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="UserService.toggle_follow-128"><a href="#UserService.toggle_follow-128"><span class="linenos">128</span></a>
+</span><span id="UserService.toggle_follow-129"><a href="#UserService.toggle_follow-129"><span class="linenos">129</span></a>        <span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+</span><span id="UserService.toggle_follow-130"><a href="#UserService.toggle_follow-130"><span class="linenos">130</span></a>            <span class="c1"># Unfollow it</span>
+</span><span id="UserService.toggle_follow-131"><a href="#UserService.toggle_follow-131"><span class="linenos">131</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService.toggle_follow-132"><a href="#UserService.toggle_follow-132"><span class="linenos">132</span></a>                <span class="n">follows</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="UserService.toggle_follow-133"><a href="#UserService.toggle_follow-133"><span class="linenos">133</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">followed_id</span> <span class="o">==</span> <span class="n">followed_id</span><span class="p">,</span>
+</span><span id="UserService.toggle_follow-134"><a href="#UserService.toggle_follow-134"><span class="linenos">134</span></a>                    <span class="n">follows</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">follower_id</span> <span class="o">==</span> <span class="n">follower_id</span>
+</span><span id="UserService.toggle_follow-135"><a href="#UserService.toggle_follow-135"><span class="linenos">135</span></a>                <span class="p">)</span>
+</span><span id="UserService.toggle_follow-136"><a href="#UserService.toggle_follow-136"><span class="linenos">136</span></a>            <span class="p">)</span>
+</span><span id="UserService.toggle_follow-137"><a href="#UserService.toggle_follow-137"><span class="linenos">137</span></a>            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService.toggle_follow-138"><a href="#UserService.toggle_follow-138"><span class="linenos">138</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User unfollowed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="UserService.toggle_follow-139"><a href="#UserService.toggle_follow-139"><span class="linenos">139</span></a>
+</span><span id="UserService.toggle_follow-140"><a href="#UserService.toggle_follow-140"><span class="linenos">140</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="UserService.toggle_follow-141"><a href="#UserService.toggle_follow-141"><span class="linenos">141</span></a>            <span class="n">follows</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">followed_id</span><span class="o">=</span><span class="n">followed_id</span><span class="p">,</span> <span class="n">follower_id</span><span class="o">=</span><span class="n">follower_id</span><span class="p">)</span>
+</span><span id="UserService.toggle_follow-142"><a href="#UserService.toggle_follow-142"><span class="linenos">142</span></a>        <span class="p">)</span>
+</span><span id="UserService.toggle_follow-143"><a href="#UserService.toggle_follow-143"><span class="linenos">143</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="UserService.toggle_follow-144"><a href="#UserService.toggle_follow-144"><span class="linenos">144</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;User followed successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Toggles follow for a user: adds follow if not followed, removes follow if already followed.</p>
 </div>
 
 

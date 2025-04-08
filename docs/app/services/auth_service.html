@@ -31,6 +31,9 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
+                    <a class="variable" href="#blacklist">blacklist</a>
+            </li>
+            <li>
                     <a class="class" href="#AuthService">AuthService</a>
                             <ul class="memberlist">
                         <li>
@@ -38,6 +41,9 @@
                         </li>
                         <li>
                                 <a class="function" href="#AuthService.authenticate_user">authenticate_user</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AuthService.logout_user">logout_user</a>
                         </li>
                 </ul>
 
@@ -65,65 +71,96 @@
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">app.extensions</span> <span class="kn">import</span> <span class="n">db</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">flask_jwt_extended</span> <span class="kn">import</span> <span class="n">create_access_token</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">flask_jwt_extended</span> <span class="kn">import</span> <span class="n">create_access_token</span><span class="p">,</span> <span class="n">get_jwt</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span> <span class="nn">bcrypt</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">app.models.user</span> <span class="kn">import</span> <span class="n">Role</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">AuthService</span><span class="p">:</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">        Creates a new user in the database.</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">        Args:</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="n">blacklist</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">AuthService</span><span class="p">:</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">        Creates a new user in the database.</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">        Args:</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>        <span class="c1"># Check if username or email already exists</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">])</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">]))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">],</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">],</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="p">)</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">        Args:</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        </span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="c1"># Verify the password</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="c1"># Generate token</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="c1"># Check if username or email already exists</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">username</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">email</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        <span class="p">)</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        Args:</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        </span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>        <span class="c1"># Verify the password</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="c1"># Generate token</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>    
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">logout_user</span><span class="p">():</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">        Logout a user and blacklist the access token.</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>        <span class="n">jti</span> <span class="o">=</span> <span class="n">get_jwt</span><span class="p">()[</span><span class="s2">&quot;jti&quot;</span><span class="p">]</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>        <span class="n">blacklist</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">jti</span><span class="p">)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Logged out successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>    <span class="c1"># @staticmethod</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>    <span class="c1"># @jwt.token_in_blocklist_loader</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>    <span class="c1"># def check_if_token_revoked(jwt_header, jwt_payload):</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>    <span class="c1">#     jti = jwt_payload[&quot;jti&quot;]</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>    <span class="c1">#     return jti in blacklist</span>
 </span></pre></div>
 
 
             </section>
+                <section id="blacklist">
+                    <div class="attr variable">
+            <span class="name">blacklist</span>        =
+<span class="default_value">set()</span>
+
+        
+    </div>
+    <a class="headerlink" href="#blacklist"></a>
+    
+    
+
+                </section>
                 <section id="AuthService">
                             <input id="AuthService-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
@@ -135,57 +172,73 @@
 
     </div>
     <a class="headerlink" href="#AuthService"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService-8"><a href="#AuthService-8"><span class="linenos"> 8</span></a><span class="k">class</span> <span class="nc">AuthService</span><span class="p">:</span>
-</span><span id="AuthService-9"><a href="#AuthService-9"><span class="linenos"> 9</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="AuthService-10"><a href="#AuthService-10"><span class="linenos">10</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="AuthService-11"><a href="#AuthService-11"><span class="linenos">11</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="AuthService-12"><a href="#AuthService-12"><span class="linenos">12</span></a><span class="sd">        Creates a new user in the database.</span>
-</span><span id="AuthService-13"><a href="#AuthService-13"><span class="linenos">13</span></a>
-</span><span id="AuthService-14"><a href="#AuthService-14"><span class="linenos">14</span></a><span class="sd">        Args:</span>
-</span><span id="AuthService-15"><a href="#AuthService-15"><span class="linenos">15</span></a>
-</span><span id="AuthService-16"><a href="#AuthService-16"><span class="linenos">16</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
-</span><span id="AuthService-17"><a href="#AuthService-17"><span class="linenos">17</span></a><span class="sd">        &quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService-11"><a href="#AuthService-11"><span class="linenos">11</span></a><span class="k">class</span> <span class="nc">AuthService</span><span class="p">:</span>
+</span><span id="AuthService-12"><a href="#AuthService-12"><span class="linenos">12</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService-13"><a href="#AuthService-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="AuthService-14"><a href="#AuthService-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService-15"><a href="#AuthService-15"><span class="linenos">15</span></a><span class="sd">        Creates a new user in the database.</span>
+</span><span id="AuthService-16"><a href="#AuthService-16"><span class="linenos">16</span></a>
+</span><span id="AuthService-17"><a href="#AuthService-17"><span class="linenos">17</span></a><span class="sd">        Args:</span>
 </span><span id="AuthService-18"><a href="#AuthService-18"><span class="linenos">18</span></a>
-</span><span id="AuthService-19"><a href="#AuthService-19"><span class="linenos">19</span></a>
-</span><span id="AuthService-20"><a href="#AuthService-20"><span class="linenos">20</span></a>        <span class="c1"># Check if username or email already exists</span>
-</span><span id="AuthService-21"><a href="#AuthService-21"><span class="linenos">21</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">])</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">]))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
-</span><span id="AuthService-22"><a href="#AuthService-22"><span class="linenos">22</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
-</span><span id="AuthService-23"><a href="#AuthService-23"><span class="linenos">23</span></a>        
-</span><span id="AuthService-24"><a href="#AuthService-24"><span class="linenos">24</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-</span><span id="AuthService-25"><a href="#AuthService-25"><span class="linenos">25</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
-</span><span id="AuthService-26"><a href="#AuthService-26"><span class="linenos">26</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">],</span>
-</span><span id="AuthService-27"><a href="#AuthService-27"><span class="linenos">27</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">],</span>
-</span><span id="AuthService-28"><a href="#AuthService-28"><span class="linenos">28</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
-</span><span id="AuthService-29"><a href="#AuthService-29"><span class="linenos">29</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
-</span><span id="AuthService-30"><a href="#AuthService-30"><span class="linenos">30</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
-</span><span id="AuthService-31"><a href="#AuthService-31"><span class="linenos">31</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
-</span><span id="AuthService-32"><a href="#AuthService-32"><span class="linenos">32</span></a>        <span class="p">)</span>
-</span><span id="AuthService-33"><a href="#AuthService-33"><span class="linenos">33</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span id="AuthService-34"><a href="#AuthService-34"><span class="linenos">34</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="AuthService-35"><a href="#AuthService-35"><span class="linenos">35</span></a>
-</span><span id="AuthService-36"><a href="#AuthService-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
-</span><span id="AuthService-37"><a href="#AuthService-37"><span class="linenos">37</span></a>    
-</span><span id="AuthService-38"><a href="#AuthService-38"><span class="linenos">38</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="AuthService-39"><a href="#AuthService-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="AuthService-40"><a href="#AuthService-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="AuthService-41"><a href="#AuthService-41"><span class="linenos">41</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
-</span><span id="AuthService-42"><a href="#AuthService-42"><span class="linenos">42</span></a>
-</span><span id="AuthService-43"><a href="#AuthService-43"><span class="linenos">43</span></a><span class="sd">        Args:</span>
-</span><span id="AuthService-44"><a href="#AuthService-44"><span class="linenos">44</span></a><span class="sd">        </span>
-</span><span id="AuthService-45"><a href="#AuthService-45"><span class="linenos">45</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
-</span><span id="AuthService-46"><a href="#AuthService-46"><span class="linenos">46</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="AuthService-47"><a href="#AuthService-47"><span class="linenos">47</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="AuthService-48"><a href="#AuthService-48"><span class="linenos">48</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="AuthService-49"><a href="#AuthService-49"><span class="linenos">49</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="AuthService-50"><a href="#AuthService-50"><span class="linenos">50</span></a>
-</span><span id="AuthService-51"><a href="#AuthService-51"><span class="linenos">51</span></a>        <span class="c1"># Verify the password</span>
-</span><span id="AuthService-52"><a href="#AuthService-52"><span class="linenos">52</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
-</span><span id="AuthService-53"><a href="#AuthService-53"><span class="linenos">53</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="AuthService-54"><a href="#AuthService-54"><span class="linenos">54</span></a>
-</span><span id="AuthService-55"><a href="#AuthService-55"><span class="linenos">55</span></a>        <span class="c1"># Generate token</span>
-</span><span id="AuthService-56"><a href="#AuthService-56"><span class="linenos">56</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
-</span><span id="AuthService-57"><a href="#AuthService-57"><span class="linenos">57</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-</span><span id="AuthService-58"><a href="#AuthService-58"><span class="linenos">58</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="AuthService-19"><a href="#AuthService-19"><span class="linenos">19</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
+</span><span id="AuthService-20"><a href="#AuthService-20"><span class="linenos">20</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService-21"><a href="#AuthService-21"><span class="linenos">21</span></a>
+</span><span id="AuthService-22"><a href="#AuthService-22"><span class="linenos">22</span></a>
+</span><span id="AuthService-23"><a href="#AuthService-23"><span class="linenos">23</span></a>        <span class="c1"># Check if username or email already exists</span>
+</span><span id="AuthService-24"><a href="#AuthService-24"><span class="linenos">24</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">username</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">email</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
+</span><span id="AuthService-25"><a href="#AuthService-25"><span class="linenos">25</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
+</span><span id="AuthService-26"><a href="#AuthService-26"><span class="linenos">26</span></a>        
+</span><span id="AuthService-27"><a href="#AuthService-27"><span class="linenos">27</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+</span><span id="AuthService-28"><a href="#AuthService-28"><span class="linenos">28</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
+</span><span id="AuthService-29"><a href="#AuthService-29"><span class="linenos">29</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+</span><span id="AuthService-30"><a href="#AuthService-30"><span class="linenos">30</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+</span><span id="AuthService-31"><a href="#AuthService-31"><span class="linenos">31</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
+</span><span id="AuthService-32"><a href="#AuthService-32"><span class="linenos">32</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
+</span><span id="AuthService-33"><a href="#AuthService-33"><span class="linenos">33</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
+</span><span id="AuthService-34"><a href="#AuthService-34"><span class="linenos">34</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
+</span><span id="AuthService-35"><a href="#AuthService-35"><span class="linenos">35</span></a>        <span class="p">)</span>
+</span><span id="AuthService-36"><a href="#AuthService-36"><span class="linenos">36</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span id="AuthService-37"><a href="#AuthService-37"><span class="linenos">37</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="AuthService-38"><a href="#AuthService-38"><span class="linenos">38</span></a>
+</span><span id="AuthService-39"><a href="#AuthService-39"><span class="linenos">39</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
+</span><span id="AuthService-40"><a href="#AuthService-40"><span class="linenos">40</span></a>    
+</span><span id="AuthService-41"><a href="#AuthService-41"><span class="linenos">41</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService-42"><a href="#AuthService-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="AuthService-43"><a href="#AuthService-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService-44"><a href="#AuthService-44"><span class="linenos">44</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
+</span><span id="AuthService-45"><a href="#AuthService-45"><span class="linenos">45</span></a>
+</span><span id="AuthService-46"><a href="#AuthService-46"><span class="linenos">46</span></a><span class="sd">        Args:</span>
+</span><span id="AuthService-47"><a href="#AuthService-47"><span class="linenos">47</span></a><span class="sd">        </span>
+</span><span id="AuthService-48"><a href="#AuthService-48"><span class="linenos">48</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
+</span><span id="AuthService-49"><a href="#AuthService-49"><span class="linenos">49</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService-50"><a href="#AuthService-50"><span class="linenos">50</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="AuthService-51"><a href="#AuthService-51"><span class="linenos">51</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="AuthService-52"><a href="#AuthService-52"><span class="linenos">52</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="AuthService-53"><a href="#AuthService-53"><span class="linenos">53</span></a>
+</span><span id="AuthService-54"><a href="#AuthService-54"><span class="linenos">54</span></a>        <span class="c1"># Verify the password</span>
+</span><span id="AuthService-55"><a href="#AuthService-55"><span class="linenos">55</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
+</span><span id="AuthService-56"><a href="#AuthService-56"><span class="linenos">56</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="AuthService-57"><a href="#AuthService-57"><span class="linenos">57</span></a>
+</span><span id="AuthService-58"><a href="#AuthService-58"><span class="linenos">58</span></a>        <span class="c1"># Generate token</span>
+</span><span id="AuthService-59"><a href="#AuthService-59"><span class="linenos">59</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
+</span><span id="AuthService-60"><a href="#AuthService-60"><span class="linenos">60</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</span><span id="AuthService-61"><a href="#AuthService-61"><span class="linenos">61</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="AuthService-62"><a href="#AuthService-62"><span class="linenos">62</span></a>    
+</span><span id="AuthService-63"><a href="#AuthService-63"><span class="linenos">63</span></a>    
+</span><span id="AuthService-64"><a href="#AuthService-64"><span class="linenos">64</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService-65"><a href="#AuthService-65"><span class="linenos">65</span></a>    <span class="k">def</span> <span class="nf">logout_user</span><span class="p">():</span>
+</span><span id="AuthService-66"><a href="#AuthService-66"><span class="linenos">66</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService-67"><a href="#AuthService-67"><span class="linenos">67</span></a><span class="sd">        Logout a user and blacklist the access token.</span>
+</span><span id="AuthService-68"><a href="#AuthService-68"><span class="linenos">68</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService-69"><a href="#AuthService-69"><span class="linenos">69</span></a>        <span class="n">jti</span> <span class="o">=</span> <span class="n">get_jwt</span><span class="p">()[</span><span class="s2">&quot;jti&quot;</span><span class="p">]</span>
+</span><span id="AuthService-70"><a href="#AuthService-70"><span class="linenos">70</span></a>        <span class="n">blacklist</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">jti</span><span class="p">)</span>
+</span><span id="AuthService-71"><a href="#AuthService-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Logged out successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span><span id="AuthService-72"><a href="#AuthService-72"><span class="linenos">72</span></a>
+</span><span id="AuthService-73"><a href="#AuthService-73"><span class="linenos">73</span></a>    <span class="c1"># @staticmethod</span>
+</span><span id="AuthService-74"><a href="#AuthService-74"><span class="linenos">74</span></a>    <span class="c1"># @jwt.token_in_blocklist_loader</span>
+</span><span id="AuthService-75"><a href="#AuthService-75"><span class="linenos">75</span></a>    <span class="c1"># def check_if_token_revoked(jwt_header, jwt_payload):</span>
+</span><span id="AuthService-76"><a href="#AuthService-76"><span class="linenos">76</span></a>    <span class="c1">#     jti = jwt_payload[&quot;jti&quot;]</span>
+</span><span id="AuthService-77"><a href="#AuthService-77"><span class="linenos">77</span></a>    <span class="c1">#     return jti in blacklist</span>
 </span></pre></div>
 
 
@@ -197,40 +250,40 @@
                     <div class="decorator decorator-staticmethod">@staticmethod</div>
 
         <span class="def">def</span>
-        <span class="name">register_user</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">data</span></span><span class="return-annotation">):</span></span>
+        <span class="name">register_user</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">username</span>, </span><span class="param"><span class="n">email</span>, </span><span class="param"><span class="n">password</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="AuthService.register_user-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#AuthService.register_user"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService.register_user-9"><a href="#AuthService.register_user-9"><span class="linenos"> 9</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="AuthService.register_user-10"><a href="#AuthService.register_user-10"><span class="linenos">10</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="AuthService.register_user-11"><a href="#AuthService.register_user-11"><span class="linenos">11</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="AuthService.register_user-12"><a href="#AuthService.register_user-12"><span class="linenos">12</span></a><span class="sd">        Creates a new user in the database.</span>
-</span><span id="AuthService.register_user-13"><a href="#AuthService.register_user-13"><span class="linenos">13</span></a>
-</span><span id="AuthService.register_user-14"><a href="#AuthService.register_user-14"><span class="linenos">14</span></a><span class="sd">        Args:</span>
-</span><span id="AuthService.register_user-15"><a href="#AuthService.register_user-15"><span class="linenos">15</span></a>
-</span><span id="AuthService.register_user-16"><a href="#AuthService.register_user-16"><span class="linenos">16</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
-</span><span id="AuthService.register_user-17"><a href="#AuthService.register_user-17"><span class="linenos">17</span></a><span class="sd">        &quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService.register_user-12"><a href="#AuthService.register_user-12"><span class="linenos">12</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService.register_user-13"><a href="#AuthService.register_user-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">register_user</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="AuthService.register_user-14"><a href="#AuthService.register_user-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService.register_user-15"><a href="#AuthService.register_user-15"><span class="linenos">15</span></a><span class="sd">        Creates a new user in the database.</span>
+</span><span id="AuthService.register_user-16"><a href="#AuthService.register_user-16"><span class="linenos">16</span></a>
+</span><span id="AuthService.register_user-17"><a href="#AuthService.register_user-17"><span class="linenos">17</span></a><span class="sd">        Args:</span>
 </span><span id="AuthService.register_user-18"><a href="#AuthService.register_user-18"><span class="linenos">18</span></a>
-</span><span id="AuthService.register_user-19"><a href="#AuthService.register_user-19"><span class="linenos">19</span></a>
-</span><span id="AuthService.register_user-20"><a href="#AuthService.register_user-20"><span class="linenos">20</span></a>        <span class="c1"># Check if username or email already exists</span>
-</span><span id="AuthService.register_user-21"><a href="#AuthService.register_user-21"><span class="linenos">21</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">])</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">]))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
-</span><span id="AuthService.register_user-22"><a href="#AuthService.register_user-22"><span class="linenos">22</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
-</span><span id="AuthService.register_user-23"><a href="#AuthService.register_user-23"><span class="linenos">23</span></a>        
-</span><span id="AuthService.register_user-24"><a href="#AuthService.register_user-24"><span class="linenos">24</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-</span><span id="AuthService.register_user-25"><a href="#AuthService.register_user-25"><span class="linenos">25</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
-</span><span id="AuthService.register_user-26"><a href="#AuthService.register_user-26"><span class="linenos">26</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">],</span>
-</span><span id="AuthService.register_user-27"><a href="#AuthService.register_user-27"><span class="linenos">27</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">],</span>
-</span><span id="AuthService.register_user-28"><a href="#AuthService.register_user-28"><span class="linenos">28</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
-</span><span id="AuthService.register_user-29"><a href="#AuthService.register_user-29"><span class="linenos">29</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
-</span><span id="AuthService.register_user-30"><a href="#AuthService.register_user-30"><span class="linenos">30</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
-</span><span id="AuthService.register_user-31"><a href="#AuthService.register_user-31"><span class="linenos">31</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
-</span><span id="AuthService.register_user-32"><a href="#AuthService.register_user-32"><span class="linenos">32</span></a>        <span class="p">)</span>
-</span><span id="AuthService.register_user-33"><a href="#AuthService.register_user-33"><span class="linenos">33</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span id="AuthService.register_user-34"><a href="#AuthService.register_user-34"><span class="linenos">34</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="AuthService.register_user-35"><a href="#AuthService.register_user-35"><span class="linenos">35</span></a>
-</span><span id="AuthService.register_user-36"><a href="#AuthService.register_user-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
+</span><span id="AuthService.register_user-19"><a href="#AuthService.register_user-19"><span class="linenos">19</span></a><span class="sd">            data (dict): Contains &quot;username&quot;, &quot;email&quot;, &quot;password&quot;.</span>
+</span><span id="AuthService.register_user-20"><a href="#AuthService.register_user-20"><span class="linenos">20</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService.register_user-21"><a href="#AuthService.register_user-21"><span class="linenos">21</span></a>
+</span><span id="AuthService.register_user-22"><a href="#AuthService.register_user-22"><span class="linenos">22</span></a>
+</span><span id="AuthService.register_user-23"><a href="#AuthService.register_user-23"><span class="linenos">23</span></a>        <span class="c1"># Check if username or email already exists</span>
+</span><span id="AuthService.register_user-24"><a href="#AuthService.register_user-24"><span class="linenos">24</span></a>        <span class="k">if</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">((</span><span class="n">User</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">username</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="n">email</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">():</span>
+</span><span id="AuthService.register_user-25"><a href="#AuthService.register_user-25"><span class="linenos">25</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Username or email already exists&quot;</span><span class="p">},</span> <span class="mi">409</span>
+</span><span id="AuthService.register_user-26"><a href="#AuthService.register_user-26"><span class="linenos">26</span></a>        
+</span><span id="AuthService.register_user-27"><a href="#AuthService.register_user-27"><span class="linenos">27</span></a>        <span class="nb">hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+</span><span id="AuthService.register_user-28"><a href="#AuthService.register_user-28"><span class="linenos">28</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span>
+</span><span id="AuthService.register_user-29"><a href="#AuthService.register_user-29"><span class="linenos">29</span></a>            <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+</span><span id="AuthService.register_user-30"><a href="#AuthService.register_user-30"><span class="linenos">30</span></a>            <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+</span><span id="AuthService.register_user-31"><a href="#AuthService.register_user-31"><span class="linenos">31</span></a>            <span class="n">password</span><span class="o">=</span><span class="nb">hash</span><span class="p">,</span>
+</span><span id="AuthService.register_user-32"><a href="#AuthService.register_user-32"><span class="linenos">32</span></a>            <span class="n">role</span><span class="o">=</span><span class="n">Role</span><span class="o">.</span><span class="n">ARTIST</span><span class="p">,</span>
+</span><span id="AuthService.register_user-33"><a href="#AuthService.register_user-33"><span class="linenos">33</span></a>            <span class="n">profile_picture</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1"># static image after registration</span>
+</span><span id="AuthService.register_user-34"><a href="#AuthService.register_user-34"><span class="linenos">34</span></a>            <span class="n">banner</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># static image registration</span>
+</span><span id="AuthService.register_user-35"><a href="#AuthService.register_user-35"><span class="linenos">35</span></a>        <span class="p">)</span>
+</span><span id="AuthService.register_user-36"><a href="#AuthService.register_user-36"><span class="linenos">36</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span id="AuthService.register_user-37"><a href="#AuthService.register_user-37"><span class="linenos">37</span></a>        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="AuthService.register_user-38"><a href="#AuthService.register_user-38"><span class="linenos">38</span></a>
+</span><span id="AuthService.register_user-39"><a href="#AuthService.register_user-39"><span class="linenos">39</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;New user added successfully&quot;</span><span class="p">},</span> <span class="mi">201</span>
 </span></pre></div>
 
 
@@ -250,33 +303,33 @@
                     <div class="decorator decorator-staticmethod">@staticmethod</div>
 
         <span class="def">def</span>
-        <span class="name">authenticate_user</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">data</span></span><span class="return-annotation">):</span></span>
+        <span class="name">authenticate_user</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">email</span>, </span><span class="param"><span class="n">password</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="AuthService.authenticate_user-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#AuthService.authenticate_user"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService.authenticate_user-38"><a href="#AuthService.authenticate_user-38"><span class="linenos">38</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="AuthService.authenticate_user-39"><a href="#AuthService.authenticate_user-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-</span><span id="AuthService.authenticate_user-40"><a href="#AuthService.authenticate_user-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="AuthService.authenticate_user-41"><a href="#AuthService.authenticate_user-41"><span class="linenos">41</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
-</span><span id="AuthService.authenticate_user-42"><a href="#AuthService.authenticate_user-42"><span class="linenos">42</span></a>
-</span><span id="AuthService.authenticate_user-43"><a href="#AuthService.authenticate_user-43"><span class="linenos">43</span></a><span class="sd">        Args:</span>
-</span><span id="AuthService.authenticate_user-44"><a href="#AuthService.authenticate_user-44"><span class="linenos">44</span></a><span class="sd">        </span>
-</span><span id="AuthService.authenticate_user-45"><a href="#AuthService.authenticate_user-45"><span class="linenos">45</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
-</span><span id="AuthService.authenticate_user-46"><a href="#AuthService.authenticate_user-46"><span class="linenos">46</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="AuthService.authenticate_user-47"><a href="#AuthService.authenticate_user-47"><span class="linenos">47</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="AuthService.authenticate_user-48"><a href="#AuthService.authenticate_user-48"><span class="linenos">48</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
-</span><span id="AuthService.authenticate_user-49"><a href="#AuthService.authenticate_user-49"><span class="linenos">49</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="AuthService.authenticate_user-50"><a href="#AuthService.authenticate_user-50"><span class="linenos">50</span></a>
-</span><span id="AuthService.authenticate_user-51"><a href="#AuthService.authenticate_user-51"><span class="linenos">51</span></a>        <span class="c1"># Verify the password</span>
-</span><span id="AuthService.authenticate_user-52"><a href="#AuthService.authenticate_user-52"><span class="linenos">52</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
-</span><span id="AuthService.authenticate_user-53"><a href="#AuthService.authenticate_user-53"><span class="linenos">53</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
-</span><span id="AuthService.authenticate_user-54"><a href="#AuthService.authenticate_user-54"><span class="linenos">54</span></a>
-</span><span id="AuthService.authenticate_user-55"><a href="#AuthService.authenticate_user-55"><span class="linenos">55</span></a>        <span class="c1"># Generate token</span>
-</span><span id="AuthService.authenticate_user-56"><a href="#AuthService.authenticate_user-56"><span class="linenos">56</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
-</span><span id="AuthService.authenticate_user-57"><a href="#AuthService.authenticate_user-57"><span class="linenos">57</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-</span><span id="AuthService.authenticate_user-58"><a href="#AuthService.authenticate_user-58"><span class="linenos">58</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService.authenticate_user-41"><a href="#AuthService.authenticate_user-41"><span class="linenos">41</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService.authenticate_user-42"><a href="#AuthService.authenticate_user-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">authenticate_user</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span id="AuthService.authenticate_user-43"><a href="#AuthService.authenticate_user-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService.authenticate_user-44"><a href="#AuthService.authenticate_user-44"><span class="linenos">44</span></a><span class="sd">        Authenticate a user and generate an access token.</span>
+</span><span id="AuthService.authenticate_user-45"><a href="#AuthService.authenticate_user-45"><span class="linenos">45</span></a>
+</span><span id="AuthService.authenticate_user-46"><a href="#AuthService.authenticate_user-46"><span class="linenos">46</span></a><span class="sd">        Args:</span>
+</span><span id="AuthService.authenticate_user-47"><a href="#AuthService.authenticate_user-47"><span class="linenos">47</span></a><span class="sd">        </span>
+</span><span id="AuthService.authenticate_user-48"><a href="#AuthService.authenticate_user-48"><span class="linenos">48</span></a><span class="sd">            data (dict): Contains &quot;email&quot; and &quot;password&quot;.</span>
+</span><span id="AuthService.authenticate_user-49"><a href="#AuthService.authenticate_user-49"><span class="linenos">49</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService.authenticate_user-50"><a href="#AuthService.authenticate_user-50"><span class="linenos">50</span></a>        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="AuthService.authenticate_user-51"><a href="#AuthService.authenticate_user-51"><span class="linenos">51</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+</span><span id="AuthService.authenticate_user-52"><a href="#AuthService.authenticate_user-52"><span class="linenos">52</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="AuthService.authenticate_user-53"><a href="#AuthService.authenticate_user-53"><span class="linenos">53</span></a>
+</span><span id="AuthService.authenticate_user-54"><a href="#AuthService.authenticate_user-54"><span class="linenos">54</span></a>        <span class="c1"># Verify the password</span>
+</span><span id="AuthService.authenticate_user-55"><a href="#AuthService.authenticate_user-55"><span class="linenos">55</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">checkpw</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)):</span>
+</span><span id="AuthService.authenticate_user-56"><a href="#AuthService.authenticate_user-56"><span class="linenos">56</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid email or password&quot;</span><span class="p">},</span> <span class="mi">401</span>
+</span><span id="AuthService.authenticate_user-57"><a href="#AuthService.authenticate_user-57"><span class="linenos">57</span></a>
+</span><span id="AuthService.authenticate_user-58"><a href="#AuthService.authenticate_user-58"><span class="linenos">58</span></a>        <span class="c1"># Generate token</span>
+</span><span id="AuthService.authenticate_user-59"><a href="#AuthService.authenticate_user-59"><span class="linenos">59</span></a>        <span class="c1"># use additional claims for more details -&gt; create_access_token(identity=str(user.id), additional_claims={&quot;username&quot;: user.username} )</span>
+</span><span id="AuthService.authenticate_user-60"><a href="#AuthService.authenticate_user-60"><span class="linenos">60</span></a>        <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">identity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</span><span id="AuthService.authenticate_user-61"><a href="#AuthService.authenticate_user-61"><span class="linenos">61</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;access_token&quot;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">},</span> <span class="mi">200</span>
 </span></pre></div>
 
 
@@ -286,6 +339,34 @@
 
 <pre><code>data (dict): Contains "email" and "password".
 </code></pre>
+</div>
+
+
+                            </div>
+                            <div id="AuthService.logout_user" class="classattr">
+                                        <input id="AuthService.logout_user-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator decorator-staticmethod">@staticmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">logout_user</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="AuthService.logout_user-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#AuthService.logout_user"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AuthService.logout_user-64"><a href="#AuthService.logout_user-64"><span class="linenos">64</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="AuthService.logout_user-65"><a href="#AuthService.logout_user-65"><span class="linenos">65</span></a>    <span class="k">def</span> <span class="nf">logout_user</span><span class="p">():</span>
+</span><span id="AuthService.logout_user-66"><a href="#AuthService.logout_user-66"><span class="linenos">66</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AuthService.logout_user-67"><a href="#AuthService.logout_user-67"><span class="linenos">67</span></a><span class="sd">        Logout a user and blacklist the access token.</span>
+</span><span id="AuthService.logout_user-68"><a href="#AuthService.logout_user-68"><span class="linenos">68</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="AuthService.logout_user-69"><a href="#AuthService.logout_user-69"><span class="linenos">69</span></a>        <span class="n">jti</span> <span class="o">=</span> <span class="n">get_jwt</span><span class="p">()[</span><span class="s2">&quot;jti&quot;</span><span class="p">]</span>
+</span><span id="AuthService.logout_user-70"><a href="#AuthService.logout_user-70"><span class="linenos">70</span></a>        <span class="n">blacklist</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">jti</span><span class="p">)</span>
+</span><span id="AuthService.logout_user-71"><a href="#AuthService.logout_user-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Logged out successfully&quot;</span><span class="p">},</span> <span class="mi">200</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Logout a user and blacklist the access token.</p>
 </div>
 
 
