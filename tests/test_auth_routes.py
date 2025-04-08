@@ -8,15 +8,18 @@ def sample_user():
         "username": "testuser",
         "email": "testuser@example.com",
         "password": "securepassword",
-        "profile_picture":"",
-        "banner":""
+        "profile_picture": "",
+        "banner": ""
     }
 
 def test_add_user(client, sample_user):
     """
-    Test the POST /auth/register endpoint to add a new user.
+    Test the POST /auth/register endpoint to add a new user using application/x-www-form-urlencoded.
     """
-    response = client.post("/auth/register", json=sample_user)
+
+    # Convert the sample_user dictionary into form-urlencoded data
+    response = client.post("/auth/register", data=sample_user, content_type="application/x-www-form-urlencoded")
+    
     assert response.status_code == 201
     assert response.json["message"] == "New user added successfully"
 
@@ -24,6 +27,7 @@ def test_add_user(client, sample_user):
     user = User.query.filter_by(username="testuser").first()
     assert user is not None
     assert user.email == "testuser@example.com"
+
 
 def test_auth_user(client, sample_user):
     user = User(
@@ -48,7 +52,8 @@ def test_auth_user(client, sample_user):
         "password":sample_user["password"]
     }
 
-    response = client.post("/auth/login", json=user_login_data)
+    response = client.post("/auth/login", data=user_login_data, content_type="application/x-www-form-urlencoded")
+
     assert response.status_code == 200
     assert "access_token" in response.json
 
