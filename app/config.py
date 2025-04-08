@@ -8,6 +8,8 @@ class Config:
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
 
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
+
 
 
 class TestingConfig(Config):

@@ -3,6 +3,8 @@ from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
 from app.models.user import follows, saved_posts
+from app.utils import endcode_filename, validate_filename
+from flask import current_app
 
 class UserService:
     @staticmethod
@@ -45,39 +47,49 @@ class UserService:
         
 
     @staticmethod
-    def update_pictures(files):
+    def update_pictures(id, profile_picture, banner):
         """
         Updates the user's profile picture or banner
 
-        Args:
-        
-            files (dict): 
         """
+        
+
         user = db.session.get(User, id)
         if not user:
             return {"error": "User not found"}, 404
         
-        if "profile_picture" in files:
-            file = files["profile_picture"]
 
-            # if allowed_file(file.filename):
-            #     filename = secure_filename(file.filename)
-            #     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            #     file.save(filepath)
-            #     user.profile_picture = filepath  # Save the file path to the 
+        # validate if file is right format
+        if profile_picture and not validate_filename(profile_picture.filename) or banner and not validate_filename(profile_picture.filename) :
+            return {"error": "Invalid file format"}, 400
+        
+        # folder has to be set up in .env and created
+        # app/... /
+        # default: app\static\uploads
+        if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
+            print(current_app.config["UPLOAD_FOLDER"])
+            return {"error": "Server error: Upload folder does not exist"}, 500
+        
+        
+        # encode filenames into Uuid4 -> Base64 + timestamp to avoid collisions
+        # save pictures to storage and save filename to database
+        if profile_picture:
+            encoded_filename = endcode_filename(profile_picture.filename)
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
+            profile_picture.save(file_path)
             
-            filename = secure_filename(file.filename)
-            filepath = os.path.join("./static/uploads", filename)
-            file.save(filepath)
-            user.profile_picture = filepath 
+            user.profile_picture = encoded_filename 
 
-        # same for banner
-        # .
-        # .
+        if banner:
+            encoded_filename = endcode_filename(banner.filename)
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
+            banner.save(file_path)
+            
+            user.banner = encoded_filename 
 
 
         db.session.commit()
-        return {"message": "Profile updated successfully"}, 200
+        return {"message": "Profile successfully updated"}, 200
 
     @staticmethod
     def get_saved_posts(user_id):

@@ -1276,26 +1276,48 @@
                 }
             }
         },
-        "/users/{id}/update-pictures": {
+        "/users/update-pictures/": {
             "put": {
                 "tags": ["users"],
-                "summary": "Updated profile picture for the User",
+                "summary": "Update user pictures",
+                "description": "Updates the user's profile with the uploaded profile picture or/and banner",
                 "security": [
                     {
-                      "bearerAuth": []
+                        "bearerAuth": []
                     }
                 ],
+                "requestBody": {
+                    "description": "Upload user profile picture and/or banner",
+                    "required": true,
+                    "content": {
+                      "multipart/form-data": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "profile_picture": {
+                              "type": "string",
+                              "format": "binary",
+                              "description": "Upload profile picture file"
+                            },
+                            "banner": {
+                              "type": "string",
+                              "format": "binary",
+                              "description": "Upload banner file"
+                            }
+                          }
+                        }
+                      }
+                    }
+                },
                 "responses": {
                     "200": {
-                    "description": "Success",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                        "hello": {
-                            "type": "string"
-                        }
-                        }
-                    }
+                        "description": "Profile successfully updated"
+                    },
+                    "400": {
+                        "description": "Missing required files or invalid format"
+                    },
+                    "500": {
+                        "description": "Possible failure of uploads"
                     }
                 }
             }

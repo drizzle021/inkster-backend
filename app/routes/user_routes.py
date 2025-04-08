@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from app.services.user_service import UserService
-from app.services.post_service import PostService
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 user_bp = Blueprint("users", __name__)
@@ -26,35 +25,25 @@ def get_user(id):
     return jsonify(response), status_code
 
 
-@user_bp.route("/users/<int:id>/update-pictures", methods=["PUT"])
-def update_pictures(id):
-    """
-    Route to update the user's profile picture or banner
-    """
 
-    files = request.files
-    
-    if "profile_picture" not in files and "banner" not in files:
-        return jsonify({"error": "At least one of 'profile_picture' or 'banner' must be provided"}), 400
-    
-
-    response, status_code = UserService.update_pictures(files)
-    
-    return jsonify(response), status_code
-
-
-@user_bp.route("/users/follow/<int:id>", methods=["POST"])
+@user_bp.route("/users/update-pictures/", methods=["PUT"])
 @jwt_required()
-def follow_user(id):
+def update_pictures():
     """
-    Route to follow a user with a specific ID
+    Route to update the user's profile picture or banner from a frontend
     """
-    identity = get_jwt_identity()
 
-    response, status_code = UserService.toggle_follow(id, identity)
-    
+    if "profile_picture" not in request.files and "banner" not in request.files:
+        return jsonify({"error": "At least one of profile picture or banner must be provided"}), 400
+
+
+    id = get_jwt_identity()
+    profile_picture = request.files.get("profile_picture")
+    banner = request.files.get("banner")
+
+    response, status_code = UserService.update_pictures(id, profile_picture, banner)
+
     return jsonify(response), status_code
-
 
 
 @user_bp.route("/users/saved", methods=["GET"])
