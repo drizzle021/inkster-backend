@@ -26,7 +26,7 @@ def get_user(id):
 
 
 
-@user_bp.route("/users/update-pictures/", methods=["PUT"])
+@user_bp.route("/users/update-pictures", methods=["PUT"])
 @jwt_required()
 def update_pictures():
     """
@@ -43,6 +43,20 @@ def update_pictures():
 
     response, status_code = UserService.update_pictures(id, profile_picture, banner)
 
+    return jsonify(response), status_code
+
+
+@user_bp.route("/users/update-tags", methods=["PUT"])
+@jwt_required()
+def update_user_tags():
+    """
+    Route to update tags associated with the user.
+    """
+    identity = get_jwt_identity()
+    raw_tags = request.form.get("tags", "") 
+    tag_list = [t.strip().lower() for t in raw_tags.split(",") if t.strip()]
+
+    response, status_code = UserService.update_tags(identity, tag_list)
     return jsonify(response), status_code
 
 

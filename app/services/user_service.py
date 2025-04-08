@@ -1,4 +1,4 @@
-from app.models import User, Post
+from app.models import User, Post, Tag
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
@@ -41,6 +41,8 @@ class UserService:
             "email": user.email,
             "profile_picture": user.profile_picture,
             "banner": user.banner,
+            "tags": [tag.name for tag in user.tags]
+
             # "posts": user.posts,
 
         }, 200
@@ -60,7 +62,7 @@ class UserService:
         
 
         # validate if file is right format
-        if profile_picture and not validate_filename(profile_picture.filename) or banner and not validate_filename(profile_picture.filename) :
+        if profile_picture and not validate_filename(profile_picture.filename) or banner and not validate_filename(banner.filename) :
             return {"error": "Invalid file format"}, 400
         
         # folder has to be set up in .env and created
@@ -90,6 +92,26 @@ class UserService:
 
         db.session.commit()
         return {"message": "Profile successfully updated"}, 200
+
+
+    @staticmethod
+    def update_tags(user_id, tag_list):
+        user = db.session.get(User, user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        new_tags = []
+        for tag_name in tag_list:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if not tag:
+                tag = Tag(name=tag_name)
+                db.session.add(tag)
+            new_tags.append(tag)
+
+        user.tags = new_tags  # Replace all current tags
+        db.session.commit()
+        return {"message": "User tags updated successfully"}, 200
+
 
     @staticmethod
     def get_saved_posts(user_id):
