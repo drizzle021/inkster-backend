@@ -35,8 +35,17 @@ Create a `.env` file in the root directory of the project and add the following 
 HOST=127.0.0.1
 PORT=5000
 DATABASE_URI=postgresql+psycopg2://<username>:<password>@<host>:<port>/<database_name>
+JWT_SECRET_KEY=yourjwtsecretkey
+UPLOAD_FOLDER=app\static\uploads
 ```
 
+### **5. Run migrations**
+Run init if setting up for the first time
+```bash
+flask db init
+flask db migrate
+flask db upgrade
+```
 
 ## **Start**
 Run the application using the following command:
