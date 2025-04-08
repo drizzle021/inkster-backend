@@ -50,6 +50,14 @@ class Post(db.Model):
         back_populates="saved_posts",
         passive_deletes=True
     )
+
+    tags = db.relationship(
+        "Tag",
+        secondary="post_tags",
+        back_populates="posts",
+        passive_deletes=True
+    )
+
     # TODO: lazy load images (?)
 
 

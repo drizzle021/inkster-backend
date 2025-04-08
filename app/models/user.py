@@ -45,6 +45,13 @@ class User(db.Model):
         lazy="dynamic",
         passive_deletes=True
     )
+    tags = db.relationship(
+        "Tag",
+        secondary="user_tags",
+        back_populates="users",
+        passive_deletes=True
+    )
+
 
     def __repr__(self):
         return f"<User {self.username} #{self.id}>"

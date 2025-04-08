@@ -14,13 +14,14 @@ def get_posts():
     """
 
     keywords = request.args.get("keywords")
-    tags = request.args.get("tags")
+    raw_tags = request.args.get("tags", "")
+    tag_list = [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
 
     post_type = request.args.get("post_type")
 
 
 
-    response, status_code = PostService.get_all_posts(keywords, tags, post_type)
+    response, status_code = PostService.get_all_posts(keywords, tag_list, post_type)
     
     return jsonify(response), status_code
 
@@ -41,6 +42,8 @@ def add_post():
     description = request.form.get("description")
     is_spoilered = request.form.get("is_spoilered", "false").lower() == "true"
     software = request.form.get("software")
+    raw_tags = request.form.get("tags", "")
+    tag_list = [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
 
     identity = get_jwt_identity()
     print(f"IDENTITY {identity}")
@@ -52,7 +55,7 @@ def add_post():
     if not title or not post_type or not caption:
         return jsonify({"error": "Missing required fields"}), 400
 
-    response, status_code = PostService.add_post(title, post_type, caption, description, is_spoilered, software, identity)
+    response, status_code = PostService.add_post(title, post_type, caption, description, is_spoilered, software, identity, tag_list)
 
     return jsonify(response), status_code
 
