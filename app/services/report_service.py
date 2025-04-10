@@ -28,7 +28,7 @@ class ReportService:
                 "id": report.id,
                 "post_id": report.post_id,
                 "report_type": report.report_type.name,
-                "status": report.status.name
+                "status": report.status.name,
             }
             for report in reports
         ], 200
@@ -50,7 +50,23 @@ class ReportService:
             "id": report.id,
             "post_id": report.post_id,
             "report_type": report.report_type.name,
-            "description": report.description
+            "description": report.description,
+            "post": {
+                "title": report.post.title,
+                "caption": report.post.caption,
+                "description": report.post.description,
+                "tags": [
+                    t.name for t in report.post.tags
+                ],
+                "author": {
+                    "id": report.post.author.id,
+                    "username": report.post.author.username,
+                    "profile_picture": report.post.author.profile_picture,
+                    "date_joined": report.post.author.date_joined
+                },
+
+                "created_at": report.post.created_at
+            }
         }, 200
 
     @staticmethod

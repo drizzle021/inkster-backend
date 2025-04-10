@@ -41,9 +41,21 @@ class UserService:
             "email": user.email,
             "profile_picture": user.profile_picture,
             "banner": user.banner,
-            "tags": [tag.name for tag in user.tags]
-
-            # "posts": user.posts,
+            "tags": [tag.name for tag in user.tags],
+            "posts": [
+                {
+                    "id": post.id,
+                    "title": post.title,
+                    "post_type": post.post_type.name,
+                    "caption": post.caption,
+                    "description": post.description,
+                    "is_spoilered": post.is_spoilered,
+                    "software": post.software,
+                    "created_at": post.created_at
+                    
+                } for post in user.posts
+            ],
+            
 
         }, 200
         
@@ -115,18 +127,29 @@ class UserService:
 
     @staticmethod
     def get_saved_posts(user_id):
-        posts = db.session.execute(
-            db.select(Post).join(saved_posts).where(saved_posts.c.user_id == user_id)
-        ).scalars().all()
+        results = db.session.execute(
+            db.select(Post, saved_posts.c.saved_at).join(saved_posts).where(saved_posts.c.user_id == user_id)
+        ).all()
+
 
         return [
             {
                 "id": post.id,
                 "title": post.title,
                 "caption": post.caption,
-                "author_id": post.author_id
+                "is_spoilered": post.is_spoilered,
+                "description": post.description,
+                "author_id": post.author_id,
+                "author": {
+                    "id": post.author.id,
+                    "username": post.author.username,
+                    "profile_picture": post.author.profile_picture,
+                    "date_joined": post.author.date_joined,
+                },
+                "saved_at": saved_at,
+                "created_at": post.created_at
             }
-            for post in posts
+            for post, saved_at in results
         ], 200
     
 

@@ -58,7 +58,13 @@ class PostService:
                 "description": post.description,
                 "is_spoilered": post.is_spoilered,
                 "software": post.software,
-                "author": post.author_id,
+                "author_id": post.author_id,
+                "author": {
+                "id": post.author.id,
+                "username": post.author.username,
+                "profile_picture": post.author.profile_picture,
+                "date_joined": post.author.date_joined
+                },
                 "tags": [tag.name for tag in post.tags]
             }
             for post in posts
@@ -88,8 +94,17 @@ class PostService:
             "description": post.description,
             "is_spoilered": post.is_spoilered,
             "software": post.software,
-            "author": post.author_id,
-            "tags": [tag.name for tag in post.tags]
+            "author_id": post.author_id,
+            "author": {
+                "id": post.author.id,
+                "username": post.author.username,
+                "profile_picture": post.author.profile_picture,
+                "date_joined": post.author.date_joined
+            },
+
+            "tags": [tag.name for tag in post.tags],
+            "likes": len(post.likes),
+            "comments": len(post.comments)
 
         }, 200
 
@@ -282,6 +297,12 @@ class PostService:
                 "id": comment.id,
                 "content": comment.content,
                 "author_id": comment.author_id,
+                "author": {
+                    "id": comment.author.id,
+                    "username": comment.author.username,
+                    "profile_picture": comment.author.profile_picture,
+                    "date_joined": comment.author.date_joined
+                },
                 "post_id": comment.post_id,
                 "created_at": comment.created_at
             }
