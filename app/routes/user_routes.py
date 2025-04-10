@@ -67,4 +67,13 @@ def get_my_saved_posts():
     response, status = UserService.get_saved_posts(user_id=identity)
     return jsonify(response), status
 
+@user_bp.route("/users/follow/<int:id>", methods=["POST"])
+@jwt_required()
+def follow(id):
+    identity = get_jwt_identity()
+    response, status = UserService.toggle_follow(id, identity)
+    return jsonify(response), status
+
+    
+
 

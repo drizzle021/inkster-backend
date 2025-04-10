@@ -85,7 +85,7 @@ def delete_post(id):
     return jsonify(response), status_code
 
 
-@post_bp.route("/posts/<int:id>/report", methods=["POST"])
+@post_bp.route("/posts/report/<int:id>", methods=["POST"])
 @jwt_required()
 def report_post(id):
     """
