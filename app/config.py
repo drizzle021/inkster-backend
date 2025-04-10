@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI")
@@ -9,8 +11,6 @@ class Config:
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
 
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
-
-
 
 class TestingConfig(Config):
     TESTING = True
