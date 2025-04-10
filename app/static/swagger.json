@@ -565,7 +565,7 @@
                 }
             }
         },
-        "/posts/{id}/report": {
+        "/posts/report/{id}": {
             "post": {
                 "tags": ["posts"],
                 "summary": "Creates a Report for a Post with ID",
@@ -1147,7 +1147,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID for the User",
+                        "description": "ID of the User to retrieve",
                         "required": "true",
                         "schema": {
                             "type": "integer",
@@ -1184,6 +1184,23 @@
                                         "banner_picture": {
                                             "type": "string",
                                             "example": "banner.png"
+                                        },
+                                        "posts": {
+                                            "type": "array",
+                                            "description": "List of posts created by the user",
+                                            "items": {
+                                                "type": "object",
+                                                "example": {
+                                                    "id": 1,
+                                                    "title": "title_of_post",
+                                                    "post_type": "ILLUSTRATION",
+                                                    "caption": "caption_of_post",
+                                                    "description":  "description_of_post",
+                                                    "is_spoilered": false,
+                                                    "software": "Clip Studio Paint",
+                                                    "created_at": "Thu, 10 Apr 2025 10:12:05 GMT"
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1210,7 +1227,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID of the post to like",
+                        "description": "ID of user to follow",
                         "required": true,
                         "schema": {
                             "type": "integer"
