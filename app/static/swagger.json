@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info":{
         "title": "Inkster",
-        "summary": "illustrations",
+        "version": "1.0.0",
         "description": "Inkster is a platform for users to share, discover, and interact with illustrations, novels, and manga. This API provides endpoints for authentication, post management, reporting, and user interactions."    },
     "tags": [
         {
@@ -24,10 +24,6 @@
         {
             "name": "map",
             "description": "Map management"
-        },
-        {
-            "name": "firebase",
-            "description": "Firebase Analytics"
         }
         
     ],
@@ -45,12 +41,6 @@
             "post": {
                 "tags": ["auth"],
                 "summary": "Register new User",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -181,6 +171,10 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+
                     }
                 }
             }
@@ -298,14 +292,6 @@
                       "bearerAuth": []
                     }
                 ],
-
-
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -377,6 +363,10 @@
                     "400": {
                         "description": "Missing required field(s)"
 
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+
                     }
                 }
             }
@@ -396,7 +386,7 @@
                         "name": "id",
                         "in": "path",
                         "description": "ID for the Post",
-                        "required": "true",
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
@@ -446,11 +436,79 @@
                                             "type": "string",
                                             "description": "chosen software",
                                             "example": "paint"
+                                        },
+                                        "author_id":{
+                                            "type":"integer",
+                                            "example": 4
+                                        },
+                                        "author":{
+                                            "type":"object",
+                                            "properties":{
+                                                "id": {
+                                                    "type":"integer",
+                                                    "example": "4"
+                                                },
+                                                "username": {
+                                                    "type":"string",
+                                                    "example": "test_user"
+                                                },
+                                                "profile_picture": {
+                                                    "type":"string",
+                                                    "example": "8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                                },
+                                                "date_joined": {
+                                                    "type":"string",
+                                                    "example": "Fri, 11 Apr 2025 18:44:12 GMT"
+                                                }
+                                            }
+                                        },
+                                        "tags":{
+                                            "type": "array",
+                                            "items":{
+                                                "type":"string",
+                                                "example":"digital_art"
+                                            }
+                                        },
+                                        "likes":{
+                                            "type":"integer",
+                                            "description": "The number of likes on the post",
+                                            "example": 2000
+                                        },
+                                        "comments":{
+                                            "type":"integer",
+                                            "description": "The number of comments on the post",
+                                            "example": 300
+                                        },
+                                        "images":{
+                                            "type":"array",
+                                            "items":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "id":{
+                                                        "type":"integer",
+                                                        "example":4
+                                                    },
+                                                    "position":{
+                                                        "type":"integer",
+                                                        "description": "The position of the image on the carousel",
+                                                        "example": 1
+                                                    },
+                                                    "image_name":{
+                                                        "type":"string",
+                                                        "example":"8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                                    }
+                                                }
+                                            }
                                         }
+                                        
                                     }
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+
                     },
                     "404": {
                         "description": "Post not found"
@@ -471,7 +529,7 @@
                         "name": "id",
                         "in": "path",
                         "description": "ID for the Post",
-                        "required": "true",
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
@@ -584,15 +642,12 @@
                       "bearerAuth": []
                     }
                 ],
-                "produces": [
-                    "application/json"
-                ],
                 "parameters":[
                     {
                         "name": "id",
                         "in": "path",
                         "description": "ID for the Post",
-                        "required": "true",
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
@@ -630,6 +685,13 @@
                     },
                     "400": {
                         "description": "Missing required field(s)"
+
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Post not Found"
 
                     }
                 }
@@ -686,12 +748,13 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Post not found"
-                    },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Post not found"
                     }
+                    
                 }
             }
         },
@@ -746,12 +809,13 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Post not found"
-                    },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Post not found"
                     }
+                    
                 }
             }
         },
@@ -798,20 +862,43 @@
                                                 "type": "integer",
                                                 "example": 3
                                             },
+                                            "author":{
+                                                    "type":"object",
+                                                    "properties":{
+                                                        "id": {
+                                                            "type":"integer",
+                                                            "example": "4"
+                                                        },
+                                                        "username": {
+                                                            "type":"string",
+                                                            "example": "test_user"
+                                                        },
+                                                        "profile_picture": {
+                                                            "type":"string",
+                                                            "example": "8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                                        },
+                                                        "date_joined": {
+                                                            "type":"string",
+                                                            "example": "Fri, 11 Apr 2025 18:44:12 GMT"
+                                                        }
+                                                    }
+                                            },
                                             "post_id": {
                                                 "type": "integer",
                                                 "example": 3
                                             },
                                             "created_at": {
                                                 "type": "string",
-                                                "format": "date-time",
-                                                "example": "2025-04-06T12:34:56"
+                                                "example": "Fri, 11 Apr 2025 18:44:12 GMT"
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "Post not found"
@@ -956,8 +1043,8 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID for the Post",
-                        "required": "true",
+                        "description": "ID of the Report",
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
@@ -996,11 +1083,64 @@
                                             "type": "string",
                                             "example": "description_of_report"
 
+                                        },
+                                        "post":{
+                                            "type":"object",
+                                            "properties":{
+                                                "title": {
+                                                    "type":"string",
+                                                    "example": "title_of_post"
+                                                },
+                                                "caption": {
+                                                    "type":"string",
+                                                    "example": "caption_of_post"
+                                                },
+                                                "description": {
+                                                    "type":"string",
+                                                    "example": "description_of_post"
+                                                },
+                                                "tags":{
+                                                    "type": "array",
+                                                    "items":{
+                                                        "type":"string",
+                                                        "example":"digital_art"
+                                                    }
+                                                },
+                                                "author":{
+                                                    "type":"object",
+                                                    "properties":{
+                                                        "id": {
+                                                            "type":"integer",
+                                                            "example": "4"
+                                                        },
+                                                        "username": {
+                                                            "type":"string",
+                                                            "example": "test_user"
+                                                        },
+                                                        "profile_picture": {
+                                                            "type":"string",
+                                                            "example": "8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                                        },
+                                                        "date_joined": {
+                                                            "type":"string",
+                                                            "example": "Fri, 11 Apr 2025 18:44:12 GMT"
+                                                        }
+                                                    }
+                                                },
+                                                "created_at":{
+                                                    "type":"string",
+                                                    "example": "Fri, 11 Apr 2025 18:44:54 GMT"
+                                                }
+                                            }
+                                            
                                         }
                                     }
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "User not found"
@@ -1131,14 +1271,6 @@
                                                 "type": "string",
                                                 "format": "email", 
                                                 "example": "test_user@example.com"
-                                            },
-                                            "profile_picture": {
-                                                "type": "string",
-                                                "example": "avatar.png"
-                                            },
-                                            "banner_picture": {
-                                                "type": "string",
-                                                "example": "banner.png"
                                             }
                                         }                                        
                                     }
@@ -1158,16 +1290,21 @@
                         "name": "id",
                         "in": "path",
                         "description": "ID of the User to retrieve",
-                        "required": "true",
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
                         }
                     }
                 ],
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "User",
+                        "description": "The data of the currently logged in user",
                         "content":{
                             "application/json": {
                                 "schema": {
@@ -1211,11 +1348,117 @@
                                                     "created_at": "Thu, 10 Apr 2025 10:12:05 GMT"
                                                 }
                                             }
+                                        },
+                                        "tags":{
+                                            "type": "array",
+                                            "items":{
+                                                "type":"string",
+                                                "example":"digital_art"
+                                            }
+                                        },
+                                        "followers":{
+                                            "type":"integer",
+                                            "example": 102
+                                        },
+                                        "following":{
+                                            "type": "integer",
+                                            "example": 232
                                         }
+
                                     }
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found"
+
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "tags": ["users"],
+                "summary": "Returns the currently logged in user",
+                "security": [
+                    {
+                      "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The data of the currently logged in user",
+                        "content":{
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties":{
+                                        "id": {
+                                            "type": "integer", 
+                                            "format": "int64",
+                                            "example": 1
+                                        },
+                                        "username": {
+                                            "type": "string", 
+                                            "example": "test_user"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email", 
+                                            "example": "test_user@example.com"
+                                        },
+                                        "profile_picture": {
+                                            "type": "string",
+                                            "example": "avatar.png"
+                                        },
+                                        "banner_picture": {
+                                            "type": "string",
+                                            "example": "banner.png"
+                                        },
+                                        "posts": {
+                                            "type": "array",
+                                            "description": "List of posts created by the user",
+                                            "items": {
+                                                "type": "object",
+                                                "example": {
+                                                    "id": 1,
+                                                    "title": "title_of_post",
+                                                    "post_type": "ILLUSTRATION",
+                                                    "caption": "caption_of_post",
+                                                    "description":  "description_of_post",
+                                                    "is_spoilered": false,
+                                                    "software": "Clip Studio Paint",
+                                                    "created_at": "Thu, 10 Apr 2025 10:12:05 GMT"
+                                                }
+                                            }
+                                        },
+                                        "tags":{
+                                            "type": "array",
+                                            "items":{
+                                                "type":"string",
+                                                "example":"digital_art"
+                                            }
+                                        },
+                                        "followers":{
+                                            "type":"integer",
+                                            "example": 102
+                                        },
+                                        "following":{
+                                            "type": "integer",
+                                            "example": 232
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "User not found"
@@ -1246,29 +1489,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Followed or unfollowed successfully.",
-                        "schema": {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "message": {
-                                    "type": "string",
-                                    "example": "User followed"
-                                  }
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "message": {
-                                    "type": "string",
-                                    "example": "User unfollowed"
-                                  }
-                                }
-                              }
-                            ]
-                        }
+                        "description": "Followed or unfollowed successfully."
+                    },
+                    "400": {
+                        "description": "User can't follow themselves"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "User not found"
@@ -1309,10 +1536,52 @@
                                                 "type": "string",
                                                 "example": "A short caption"
                                             },
+                                            "is_spoilered": {
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "Saved Post Description"
+                                            },
+                                            "thumbnail": {
+                                                "type": "string",
+                                                "example": "8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                            },
                                             "author_id": {
                                                 "type": "integer",
                                                 "example": 4
+                                            },
+                                            "author": {
+                                                "type": "object",
+                                                "properties":{
+                                                    "id":{
+                                                        "type": "integer",
+                                                        "example": 4
+                                                    },
+                                                    "username":{
+                                                        "type": "string",
+                                                        "example": "test_user"
+                                                    },
+                                                    "profile_picture":{
+                                                        "type": "string",
+                                                        "example": "8xVzS-1XSmeMBlY4sxc4Sg_20250408T030158.jpg"
+                                                    },
+                                                    "date_joined":{
+                                                        "type": "string",
+                                                        "example": "Thu, 10 Apr 2025 10:12:05 GMT"
+                                                    }
+                                                }
+                                            },
+                                            "saved_at": {
+                                                "type": "string",
+                                                "example": "Thu, 10 Apr 2025 10:12:05 GMT"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "example": "Thu, 10 Apr 2025 10:12:05 GMT"
                                             }
+                                            
                                         }
                                     }
                                 }
@@ -1365,6 +1634,12 @@
                     "400": {
                         "description": "Missing required files or invalid format"
                     },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
                     "500": {
                         "description": "Possible failure of uploads"
                     }
@@ -1413,6 +1688,9 @@
                             }
                         }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "User not found"
@@ -1472,35 +1750,56 @@
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                "name": {
-                                    "type": "string",
-                                    "example": "Louvre Museum"
-                                },
-                                "place_id": {
-                                    "type": "string",
-                                    "example": "ChIJb8Jg9pJU5kcR7GBcDHgV6bs"
-                                },
-                                "address": {
-                                    "type": "string",
-                                    "example": "Rue de Rivoli, 75001 Paris, France"
-                                },
-                                "type": {
-                                    "type": "string",
-                                    "example": "museum"
-                                },
-                                "location": {
-                                    "type": "object",
-                                    "properties": {
-                                    "lat": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Louvre Museum"
+                                    },
+                                    "place_id": {
+                                        "type": "string",
+                                        "example": "ChIJD3uTd9hx5kcR1IQvGfr8dbk"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "75001 Paris, France"
+                                    },
+                                    "latitude": {
                                         "type": "number",
                                         "example": 48.8606
                                     },
-                                    "lng": {
+                                    "longitude": {
                                         "type": "number",
                                         "example": 2.3376
+                                    },
+                                    "directions_link": {
+                                        "type": "string",
+                                        "example": "https://www.google.com/maps/dir/?api=1&destination=48.8606111,2.337644&origin=48.8606,2.3376"
+                                    },
+                                    "gmaps": {
+                                        "type": "string",
+                                        "example": "https://maps.google.com/?cid=13363865620386383060"
+                                    },
+                                    "rating": {
+                                        "type": "number",
+                                        "example": 4.7
+                                    },
+                                    "summary":{
+                                        "type": "object",
+                                        "properties":{
+                                            "languageCode":{
+                                                "type": "string",
+                                                "example": "en"
+                                            },
+                                            "text":{
+                                                "type": "string",
+                                                "example": "Former historic palace housing huge art collection, from Roman sculptures to da Vinci's \"Mona Lisa.\""
+                                            }
+                                        }
+                                    },
+                                    "website":{
+                                        "type": "string",
+                                        "example": "https://www.louvre.fr/"
                                     }
-                                    }
-                                }
+                                
                                 }
                             }
                             }
@@ -1510,31 +1809,13 @@
                     "400": {
                         "description": "Missing or invalid latitude or longitude"
                     },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
                     "500": {
                         "description": "Server error or external API failure"
                     }
-                }
-            }
-        },
-        "/firebase/log-event": {
-            "post": {
-                "tags": ["firebase"],
-                "summary": "",
-                "description": ".",
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-
-                    }
-                ],
-                "responses": {
-                    "500": {
-                        "description": "Server error or external API failure"
-                    }
+                    
                 }
             }
         }
