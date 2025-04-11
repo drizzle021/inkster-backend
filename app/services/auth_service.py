@@ -23,14 +23,16 @@ class AuthService:
         if User.query.filter((User.username == username) | (User.email == email)).first():
             return {"error": "Username or email already exists"}, 409
         
+        # validation of credentials missing
+
         hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user = User(
             username=username,
             email=email,
             password=hash,
             role=Role.ARTIST,
-            profile_picture="", # static image after registration
-            banner="" # static image registration
+            profile_picture="/static/images/default.jpg", # static image after registration
+            banner="" # static image after registration
         )
         db.session.add(user)
         db.session.commit()

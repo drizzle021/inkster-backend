@@ -79,6 +79,11 @@ class ReportService:
             id (int): ID of the report to be created.
         """
 
+        post = db.session.get(Post, id)
+
+        if not post:
+            return {"error": "Post not found"}, 404
+
         report = Report (
             report_type= ReportType(report_type),
             description= description,

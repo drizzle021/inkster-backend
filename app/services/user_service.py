@@ -35,6 +35,9 @@ class UserService:
         if not user:
             return {"error": "User not found"}, 404
         
+        followers = db.session.query(follows).filter(follows.c.followed_id == user.id).count()
+        following = db.session.query(follows).filter(follows.c.follower_id == user.id).count()
+
         return {
             "id": user.id,
             "username": user.username,
@@ -42,6 +45,8 @@ class UserService:
             "profile_picture": user.profile_picture,
             "banner": user.banner,
             "tags": [tag.name for tag in user.tags],
+            "following": following,
+            "followers": followers,
             "posts": [
                 {
                     "id": post.id,
@@ -154,13 +159,16 @@ class UserService:
             for post, saved_at in results
         ], 200
     
-
-    # TODO: test follow
     @staticmethod
     def toggle_follow(followed_id, follower_id):
         """
         Toggles follow for a user: adds follow if not followed, removes follow if already followed.
         """
+
+        # ids remained in type string for some reason, leave in int
+        if int(followed_id) == int(follower_id):
+            return {"error": "User can't follow themselves"}, 400
+
         user = db.session.get(User, followed_id)
         if not user:
             return {"error": "User not found"}, 404
