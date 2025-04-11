@@ -48,14 +48,14 @@ def add_post():
     identity = get_jwt_identity()
     print(f"IDENTITY {identity}")
 
-    # PICTURES in array? LAZY LOAD
-    # picture = request.form.get()
 
     # check required fields
     if not title or not post_type or not caption:
         return jsonify({"error": "Missing required fields"}), 400
 
-    response, status_code = PostService.add_post(title, post_type, caption, description, is_spoilered, software, identity, tag_list)
+    images = request.files.getlist("images")
+
+    response, status_code = PostService.add_post(title, post_type, caption, description, is_spoilered, software, identity, tag_list, images)
 
     return jsonify(response), status_code
 
