@@ -3,7 +3,7 @@ from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
 from app.models.user import follows, saved_posts
-from app.utils import endcode_filename, validate_filename
+from app.utils import encode_filename, validate_filename
 from flask import current_app
 
 class UserService:
@@ -51,7 +51,8 @@ class UserService:
                     "description": post.description,
                     "is_spoilered": post.is_spoilered,
                     "software": post.software,
-                    "created_at": post.created_at
+                    "created_at": post.created_at,
+                    "thumbnail": post.images[0].image_name
                     
                 } for post in user.posts
             ],
@@ -88,14 +89,14 @@ class UserService:
         # encode filenames into Uuid4 -> Base64 + timestamp to avoid collisions
         # save pictures to storage and save filename to database
         if profile_picture:
-            encoded_filename = endcode_filename(profile_picture.filename)
+            encoded_filename = encode_filename(profile_picture.filename)
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
             profile_picture.save(file_path)
             
             user.profile_picture = encoded_filename 
 
         if banner:
-            encoded_filename = endcode_filename(banner.filename)
+            encoded_filename = encode_filename(banner.filename)
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
             banner.save(file_path)
             
@@ -139,6 +140,7 @@ class UserService:
                 "caption": post.caption,
                 "is_spoilered": post.is_spoilered,
                 "description": post.description,
+                "thumbnail": post.images[0].image_name,
                 "author_id": post.author_id,
                 "author": {
                     "id": post.author.id,
@@ -153,7 +155,7 @@ class UserService:
         ], 200
     
 
-    
+    # TODO: test follow
     @staticmethod
     def toggle_follow(followed_id, follower_id):
         """
