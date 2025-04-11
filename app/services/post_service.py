@@ -1,8 +1,11 @@
-from app.models import Post, User, Like, Comment, Tag
+from app.models import Post, User, Like, Comment, Tag, Image
 from app.extensions import db
 from app.models.user import saved_posts
 from sqlalchemy import or_, and_
 from app.models.post import PostType
+from app.utils import encode_filename, validate_filename
+from flask import current_app
+import os
 
 
 class PostService:
@@ -65,7 +68,8 @@ class PostService:
                 "profile_picture": post.author.profile_picture,
                 "date_joined": post.author.date_joined
                 },
-                "tags": [tag.name for tag in post.tags]
+                "tags": [tag.name for tag in post.tags],
+                "created_at": post.created_at,
             }
             for post in posts
         ], 200
@@ -104,13 +108,20 @@ class PostService:
 
             "tags": [tag.name for tag in post.tags],
             "likes": len(post.likes),
-            "comments": len(post.comments)
+            "comments": len(post.comments),
+            "images": [
+                    {
+                        "id": image.id,
+                        "position": image.position,
+                        "image_name": image.image_name
+                    }
+                for image in post.images] 
 
         }, 200
 
 
     @staticmethod
-    def add_post(title, post_type, caption, description, is_spoilered, software, identity, tag_list):
+    def add_post(title, post_type, caption, description, is_spoilered, software, identity, tag_list, images):
         """
         Creates a post in the database.
 
@@ -123,9 +134,6 @@ class PostService:
             software
         """
 
-
-
-        # TODO: ADD PICTURES
         post = Post(
             title=title,
             post_type=post_type,
@@ -135,7 +143,7 @@ class PostService:
             software=software,
             author_id=identity,
         )
-
+        db.session.add(post)
 
         if tag_list:
             tags = []  
@@ -148,8 +156,27 @@ class PostService:
             
             post.tags = tags
 
+        if images:
+            for position, image_file in enumerate(images, start=1):
+                if not validate_filename(image_file.filename):
+                    return {"error": f"Invalid file format for {image_file.filename}"}, 400
+                
+                if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
+                    return {"error": "Server error: Upload folder does not exist"}, 500
 
-        db.session.add(post)
+                encoded_filename = encode_filename(image_file.filename)
+                file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
+                image_file.save(file_path)
+
+                image = Image(
+                    image_name=encoded_filename,
+                    position=position,
+                    post_id = post.id,
+                    post=post
+                )
+                db.session.add(image)
+
+        
         db.session.commit()
 
         return {"message": "New post created successfully"}, 201
