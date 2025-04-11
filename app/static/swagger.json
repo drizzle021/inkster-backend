@@ -309,7 +309,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/x-www-form-urlencoded": {
+                        "multipart/form-data": {
                             "schema": {
                                 "type": "object",
                                 "properties": {
@@ -352,6 +352,15 @@
                                             "example": "happy"
                                         },
                                         "example": ["happy", "fun", "sketch"]
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "description": "List of image files to be uploaded",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary",
+                                            "example": "example.jpg"
+                                        }
                                     }
                                 },
                                 "required": ["title", "post_type", "caption", "is_spoilered"]
@@ -359,6 +368,7 @@
                         }
                     }
                 },
+
                 "responses": {
                     "201": {
                         "description": "Successfully created Post"
