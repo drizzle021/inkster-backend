@@ -3,7 +3,7 @@ import base64
 import os
 from datetime import datetime
 
-def endcode_filename(filename):
+def encode_filename(filename):
     """
     Encodes filename into unique filenames with 42-43 chars
     """
