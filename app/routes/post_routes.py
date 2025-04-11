@@ -19,9 +19,9 @@ def get_posts():
 
     post_type = request.args.get("post_type")
 
+    identity = get_jwt_identity()
 
-
-    response, status_code = PostService.get_all_posts(keywords, tag_list, post_type)
+    response, status_code = PostService.get_all_posts(identity, keywords, tag_list, post_type)
     
     return jsonify(response), status_code
 
@@ -46,7 +46,6 @@ def add_post():
     tag_list = [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
 
     identity = get_jwt_identity()
-    print(f"IDENTITY {identity}")
 
 
     # check required fields

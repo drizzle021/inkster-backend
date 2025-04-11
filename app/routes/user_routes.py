@@ -15,6 +15,7 @@ def get_users():
     return jsonify(response), status_code
 
 @user_bp.route("/users/<int:id>", methods=["GET"])
+@jwt_required()
 def get_user(id):
     """
     Route to retrieve a user with a specific ID
@@ -24,7 +25,18 @@ def get_user(id):
     
     return jsonify(response), status_code
 
+@user_bp.route("users/me", methods=["GET"])
+@jwt_required()
+def me():
+    """
+    Route to retrieve the current user
+    """
 
+    id = get_jwt_identity()
+
+    response, status_code = UserService.get_user(id)
+    
+    return jsonify(response), status_code
 
 @user_bp.route("/users/update-pictures", methods=["PUT"])
 @jwt_required()
@@ -71,6 +83,7 @@ def get_my_saved_posts():
 @jwt_required()
 def follow(id):
     identity = get_jwt_identity()
+
     response, status = UserService.toggle_follow(id, identity)
     return jsonify(response), status
 
