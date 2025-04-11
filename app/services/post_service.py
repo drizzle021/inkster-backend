@@ -12,7 +12,7 @@ class PostService:
 
     # pagination here maybe
     @staticmethod
-    def get_all_posts(keywords=None, tags=None, post_type=None):
+    def get_all_posts(user_id, keywords=None, tags=None, post_type=None):
         """
         Retrieves all posts from the database, with optional filters:
             - keywords (in title, caption, or description)
@@ -20,7 +20,6 @@ class PostService:
             - tags (matches posts having ANY of the given tag names)
         """
 
-        print(tags)
         filters = []
 
         # Keyword search
@@ -50,7 +49,11 @@ class PostService:
         if filters:
             posts_query = posts_query.filter(and_(*filters))
 
+
+        posts_query = posts_query.join(Like, Like.post_id == Post.id and Like.user_id == user_id, isouter=True)
+
         posts = posts_query.all()
+
 
         return [
             {
@@ -69,6 +72,7 @@ class PostService:
                 "date_joined": post.author.date_joined
                 },
                 "tags": [tag.name for tag in post.tags],
+                "is_liked": bool(post.likes),
                 "created_at": post.created_at,
             }
             for post in posts
