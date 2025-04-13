@@ -8,8 +8,8 @@ class MapService:
         Uses Google Places API to get nearby art galleries and museums based on the given latitude and longitude.
         """
 
-        API_KEY = current_app.config["GOOGLE_PLACES_API_KEY"]
-
+        API_KEY = current_app.config["GOOGLE_PLACES_API_KEY"] 
+        
         if not API_KEY:
             return {"error": "Google API key not set"}, 500
         
@@ -31,7 +31,7 @@ class MapService:
             "locationRestriction": {
                 "circle": {
                     "center": {"latitude": float(lat), "longitude": float(lng)},
-                    "radius": 5000.0 
+                    "radius": radius 
                 }
             }
         }
@@ -39,7 +39,7 @@ class MapService:
         try:
             response = requests.post(url, json=payload, headers=headers)
             data = response.json()
-
+            
 
             exhibitions = [
                 {

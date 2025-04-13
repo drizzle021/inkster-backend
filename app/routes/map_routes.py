@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
 from app.services.map_service import MapService
+from flask_jwt_extended import jwt_required
 
 map_bp = Blueprint("map", __name__)
 
 @map_bp.route("/map/nearby-exhibitions", methods=["GET"])
+@jwt_required()
 def get_nearby_exhibitions():
     """
     Get nearby exhibitions (galleries, museums, etc.) using Google Places API.
