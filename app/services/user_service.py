@@ -57,7 +57,7 @@ class UserService:
                     "is_spoilered": post.is_spoilered,
                     "software": post.software,
                     "created_at": post.created_at,
-                    "thumbnail": post.images[0].image_name
+                    # "thumbnail": post.images[0].image_name
                     
                 } for post in user.posts
             ],
