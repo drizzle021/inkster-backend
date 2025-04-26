@@ -3,8 +3,8 @@ from app.extensions import db
 from app.models.user import saved_posts
 from sqlalchemy import or_, and_
 from app.models.post import PostType
-from app.utils import encode_filename, validate_filename
-from flask import current_app
+from app.utils import encode_filename, validate_filename, validate_file_size, normalize_image
+from flask import current_app, send_from_directory
 import os
 
 
@@ -160,27 +160,36 @@ class PostService:
             
             post.tags = tags
 
-        if images:
-            for position, image_file in enumerate(images, start=1):
-                if not validate_filename(image_file.filename):
-                    return {"error": f"Invalid file format for {image_file.filename}"}, 400
-                
-                if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
-                    return {"error": "Server error: Upload folder does not exist"}, 500
+        # validate and process files
+        validated_images = []
+        for position, image_file in enumerate(images, start=1):
+            if not validate_filename(image_file.filename):
+                return {"error": f"Invalid file format for {image_file.filename}"}, 400
 
-                encoded_filename = encode_filename(image_file.filename)
-                file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
-                image_file.save(file_path)
+            if not validate_file_size(image_file):
+                return {"error": f"File size exceeds the limit for {image_file.filename}"}, 413
 
-                image = Image(
-                    image_name=encoded_filename,
-                    position=position,
-                    post_id = post.id,
-                    post=post
-                )
-                db.session.add(image)
+            normalized_image = normalize_image(image_file)
+            validated_images.append((normalized_image, image_file.filename, position))
 
-        
+        for normalized_image, original_filename, position in validated_images:
+            if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
+                return {"error": "Server error: Upload folder does not exist"}, 500
+
+            encoded_filename = encode_filename(original_filename)
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
+
+            with open(file_path, "wb") as f:
+                f.write(normalized_image.read())
+
+            image = Image(
+                image_name=encoded_filename,
+                position=position,
+                post_id=post.id,
+                post=post
+            )
+            db.session.add(image)
+
         db.session.commit()
 
         return {"message": "New post created successfully"}, 201
@@ -374,3 +383,20 @@ class PostService:
         )
         db.session.commit()
         return {"message": "Post saved successfully"}, 200
+    
+    @staticmethod
+    def get_image(id, pos):
+        post = db.session.get(Post, id)
+
+        if not post:
+            return {"error": "Post not found"}, 404
+        
+        image = Image.query.filter_by(post_id=id, position=pos).first()
+
+        if not image:
+            return {"error": "Image not found"}, 404
+        
+        # needs absolute path. doesnt find the folder otherwise
+        dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
+
+        return send_from_directory(dir_path, image.image_name), 200

@@ -170,4 +170,17 @@ def add_comment(id):
     response, status_code = PostService.add_comment(id, identity, content.strip())
     return jsonify(response), status_code
 
+@post_bp.route("/posts/image/<int:id>/<int:pos>", methods=["GET"])
+@jwt_required()
+def get_image(id, pos):
+    """
+    Route to get an image on a specific position from a post
+    """
+    response, status_code = PostService.get_image(id, pos)
+
+    if status_code == 200:
+        return response, status_code
+
+    return jsonify(response), status_code
+
 
