@@ -36,7 +36,7 @@ HOST=127.0.0.1
 PORT=5000
 DATABASE_URI=postgresql+psycopg2://<username>:<password>@<host>:<port>/<database_name>
 JWT_SECRET_KEY=yourjwtsecretkey
-UPLOAD_FOLDER=app\static\uploads
+UPLOAD_FOLDER=app\uploads
 ```
 
 ### **5. Run migrations**
