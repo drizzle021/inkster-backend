@@ -6,7 +6,7 @@ from datetime import datetime
 from PIL import Image as PILImage
 
 # 2 MBs
-MAX_FILESIZE = 1024*1024*2
+MAX_FILESIZE = 1024*1024*3
 
 def encode_filename(filename):
     """
