@@ -87,26 +87,10 @@ def follow(id):
     response, status = UserService.toggle_follow(id, identity)
     return jsonify(response), status
 
-@user_bp.route("/users/image/picture/<int:id>", methods=["GET"])
+@user_bp.route("/users/image/<name>", methods=["GET"])
 @jwt_required()
-def get_profile_picture(id):
-    """
-    Route to get profile picture of user
-    """
-    response, status_code = UserService.get_image(id)
-
-    if status_code == 200:
-        return response, status_code
-
-    return jsonify(response), status_code
-
-@user_bp.route("/users/image/banner/<int:id>", methods=["GET"])
-@jwt_required()
-def get_profile_banner(id):
-    """
-    Route to get banner of user
-    """
-    response, status_code = UserService.get_banner(id)
+def get_image(name):
+    response, status_code = UserService.get_image(name)
 
     if status_code == 200:
         return response, status_code
