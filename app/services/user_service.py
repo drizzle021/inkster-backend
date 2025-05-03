@@ -3,7 +3,7 @@ from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
 from app.models.user import follows, saved_posts
-from app.utils import encode_filename, validate_filename
+from app.utils import encode_filename, validate_filename, validate_file_size, normalize_image
 from flask import current_app, send_from_directory
 from flask_jwt_extended import get_jwt_identity
 
@@ -110,18 +110,30 @@ class UserService:
         # encode filenames into Uuid4 -> Base64 + timestamp to avoid collisions
         # save pictures to storage and save filename to database
         if profile_picture:
+            if not validate_file_size(profile_picture):
+                return {"error": f"File size exceeds the limit for {profile_picture.filename}"}, 413
+
+            normalized_image = normalize_image(profile_picture)
             encoded_filename = encode_filename(profile_picture.filename)
-            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
-            profile_picture.save(file_path)
-            
             user.profile_picture = encoded_filename 
 
-        if banner:
-            encoded_filename = encode_filename(banner.filename)
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
-            banner.save(file_path)
+
+            with open(file_path, "wb") as f:
+                f.write(normalized_image.read())
+
+
+        if banner:
+            if not validate_file_size(banner):
+                return {"error": f"File size exceeds the limit for {banner.filename}"}, 413
             
-            user.banner = encoded_filename 
+            normalized_image = normalize_image(banner)
+            encoded_filename = encode_filename(banner.filename)
+            user.banner = encoded_filename
+
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encoded_filename)
+            with open(file_path, "wb") as f:
+                f.write(normalized_image.read())
 
 
         db.session.commit()
@@ -216,36 +228,8 @@ class UserService:
 
 
     @staticmethod
-    def get_image(id):
-        user = db.session.get(User, id)
-
-        if not user:
-            return {"error": "User not found"}, 404
-        
-        image = Image.query.filter_by(user_id=id).first()
-
-        if not image:
-            return {"error": "Image not found"}, 404
-        
+    def get_image(image_name):
         # needs absolute path. doesnt find the folder otherwise
         dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
 
-        return send_from_directory(dir_path, image.image_name), 200
-    
-
-    @staticmethod
-    def get_banner(id):
-        user = db.session.get(User, id)
-
-        if not user:
-            return {"error": "User not found"}, 404
-        
-        image = Image.query.filter_by(user_id=id).first()
-
-        if not image:
-            return {"error": "Image not found"}, 404
-        
-        # needs absolute path. doesnt find the folder otherwise
-        dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
-
-        return send_from_directory(dir_path, image.image_name), 200
+        return send_from_directory(dir_path, image_name), 200

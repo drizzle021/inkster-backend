@@ -398,18 +398,10 @@ class PostService:
         return {"message": "Post saved successfully"}, 200
     
     @staticmethod
-    def get_image(id, pos):
-        post = db.session.get(Post, id)
-
-        if not post:
-            return {"error": "Post not found"}, 404
-        
-        image = Image.query.filter_by(post_id=id, position=pos).first()
-
-        if not image:
-            return {"error": "Image not found"}, 404
-        
+    def get_image(image_name):
         # needs absolute path. doesnt find the folder otherwise
         dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
 
-        return send_from_directory(dir_path, image.image_name), 200
+        print(dir_path)
+
+        return send_from_directory(dir_path, image_name), 200
