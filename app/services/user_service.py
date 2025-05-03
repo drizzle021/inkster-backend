@@ -1,10 +1,11 @@
-from app.models import User, Post, Tag
+from app.models import User, Post, Tag, Image
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
 from app.models.user import follows, saved_posts
 from app.utils import encode_filename, validate_filename
-from flask import current_app
+from flask import current_app, send_from_directory
+from flask_jwt_extended import get_jwt_identity
 
 class UserService:
     @staticmethod
@@ -38,15 +39,30 @@ class UserService:
         followers = db.session.query(follows).filter(follows.c.followed_id == user.id).count()
         following = db.session.query(follows).filter(follows.c.follower_id == user.id).count()
 
+
+        current_user_id = get_jwt_identity()
+
+        is_following = False
+        if current_user_id and current_user_id != user.id:
+            follow_exists = db.session.execute(
+                db.select(follows).where(
+                    follows.c.followed_id == user.id,
+                    follows.c.follower_id == current_user_id
+                )
+            ).first()
+            is_following = bool(follow_exists)
+
         return {
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "role": user.role.name,
             "profile_picture": user.profile_picture,
             "banner": user.banner,
             "tags": [tag.name for tag in user.tags],
             "following": following,
             "followers": followers,
+            "is_following": is_following,
             "posts": [
                 {
                     "id": post.id,
@@ -142,10 +158,11 @@ class UserService:
             {
                 "id": post.id,
                 "title": post.title,
+                "post_type": post.post_type.name,
                 "caption": post.caption,
                 "is_spoilered": post.is_spoilered,
                 "description": post.description,
-                "thumbnail": post.images[0].image_name,
+                # "thumbnail": post.images[0].image_name,
                 "author_id": post.author_id,
                 "author": {
                     "id": post.author.id,
@@ -196,3 +213,39 @@ class UserService:
         )
         db.session.commit()
         return {"message": "User followed successfully"}, 200
+
+
+    @staticmethod
+    def get_image(id):
+        user = db.session.get(User, id)
+
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        image = Image.query.filter_by(user_id=id).first()
+
+        if not image:
+            return {"error": "Image not found"}, 404
+        
+        # needs absolute path. doesnt find the folder otherwise
+        dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
+
+        return send_from_directory(dir_path, image.image_name), 200
+    
+
+    @staticmethod
+    def get_banner(id):
+        user = db.session.get(User, id)
+
+        if not user:
+            return {"error": "User not found"}, 404
+        
+        image = Image.query.filter_by(user_id=id).first()
+
+        if not image:
+            return {"error": "Image not found"}, 404
+        
+        # needs absolute path. doesnt find the folder otherwise
+        dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
+
+        return send_from_directory(dir_path, image.image_name), 200

@@ -64,7 +64,7 @@ class ReportService:
                     "profile_picture": report.post.author.profile_picture,
                     "date_joined": report.post.author.date_joined
                 },
-
+                "thumbnail": report.post.images[0].image_name,
                 "created_at": report.post.created_at
             }
         }, 200

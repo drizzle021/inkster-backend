@@ -65,8 +65,8 @@ def get_post(id):
     """
     Route to retrieve a post with a specific ID.
     """
-
-    response, status_code = PostService.get_post(id)
+    identity = get_jwt_identity()
+    response, status_code = PostService.get_post(id, identity)
 
     return jsonify(response), status_code
 

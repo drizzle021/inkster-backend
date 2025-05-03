@@ -54,7 +54,14 @@ class PostService:
 
         posts = posts_query.all()
 
+        
+        user = db.session.get(User, user_id)
 
+        saved = [p.id for p in user.saved_posts]
+
+        
+        
+        
         return [
             {
                 "id": post.id,
@@ -73,6 +80,7 @@ class PostService:
                 },
                 "tags": [tag.name for tag in post.tags],
                 "is_liked": bool(post.likes),
+                "is_saved": post.id in saved,
                 "created_at": post.created_at,
             }
             for post in posts
@@ -80,7 +88,7 @@ class PostService:
 
 
     @staticmethod
-    def get_post(id):
+    def get_post(id, user_id):
         """
         Retrieves a specific post from the database.
 
@@ -92,6 +100,9 @@ class PostService:
         if not post:
             return {"error": "Post not found"}, 404
         
+        user = db.session.get(User, user_id)
+
+        saved = [p.id for p in user.saved_posts]
 
 
         return {
@@ -112,6 +123,8 @@ class PostService:
 
             "tags": [tag.name for tag in post.tags],
             "likes": len(post.likes),
+            "is_liked": bool(post.likes),
+            "is_saved": post.id in saved,
             "comments": len(post.comments),
             "images": [
                     {
