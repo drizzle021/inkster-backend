@@ -7,10 +7,16 @@ user_bp = Blueprint("users", __name__)
 @user_bp.route("/users", methods=["GET"])
 def get_users():
     """
-    Route to retrieve all users.
+    Route to retrieve all users, with optional filtering:
+        - ?keywords=...
+        - ?tags=tag1,tag2,...
     """
 
-    response, status_code = UserService.get_all_users()
+    keywords = request.args.get("keywords")
+    raw_tags = request.args.get("tags", "")
+    tag_list = [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
+
+    response, status_code = UserService.get_all_users(keywords=keywords, tags=tag_list)
     
     return jsonify(response), status_code
 

@@ -6,19 +6,42 @@ from app.models.user import follows, saved_posts
 from app.utils import encode_filename, validate_filename, validate_file_size, normalize_image
 from flask import current_app, send_from_directory
 from flask_jwt_extended import get_jwt_identity
+from sqlalchemy import or_, and_
 
 class UserService:
     @staticmethod
-    def get_all_users():
+    def get_all_users(keywords=None, tags=None):
         """
-        Retrieves all users from the database.
+        Retrieves all users from the database, with optional filters:
+            - keywords (search in username)
+            - tags (matches users having ANY of the given tag names)
         """
-        users = User.query.all()
+        filters = []
+
+        # Keyword search
+        if keywords:
+            keyword_filter = User.username.ilike(f"%{keywords}%")
+            filters.append(keyword_filter)
+
+        users_query = User.query
+
+        # Tag filter
+        if tags:
+            tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
+            if tag_names:
+                users_query = users_query.join(User.tags).filter(Tag.name.in_(tag_names)).distinct()
+
+        if filters:
+            users_query = users_query.filter(and_(*filters))
+
+        users = users_query.all()
+
         return [
             {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
+                "profile_picture": user.profile_picture,
             }
             for user in users
         ], 200
@@ -73,7 +96,7 @@ class UserService:
                     "is_spoilered": post.is_spoilered,
                     "software": post.software,
                     "created_at": post.created_at,
-                    # "thumbnail": post.images[0].image_name
+                    "thumbnail": post.images[0].image_name
                     
                 } for post in user.posts
             ],
@@ -174,7 +197,7 @@ class UserService:
                 "caption": post.caption,
                 "is_spoilered": post.is_spoilered,
                 "description": post.description,
-                # "thumbnail": post.images[0].image_name,
+                "thumbnail": post.images[0].image_name,
                 "author_id": post.author_id,
                 "author": {
                     "id": post.author.id,
