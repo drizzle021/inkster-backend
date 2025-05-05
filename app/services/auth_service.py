@@ -3,6 +3,7 @@ from app.extensions import db, jwt
 from flask_jwt_extended import create_access_token
 import bcrypt
 from app.models.user import Role
+from datetime import timedelta
 
 
 revoked_tokens = set()
@@ -58,7 +59,8 @@ class AuthService:
 
         # Generate token
         # use additional claims for more details -> create_access_token(identity=str(user.id), additional_claims={"username": user.username} )
-        access_token = create_access_token(identity=str(user.id))
+        expires = timedelta(minutes=10)
+        access_token = create_access_token(identity=str(user.id), expires_delta=expires)
         return {"access_token": access_token}, 200
     
     
