@@ -82,7 +82,7 @@ class PostService:
                 "is_liked": bool(post.likes),
                 "is_saved": post.id in saved,
                 "created_at": post.created_at,
-                "thumbnail": post.images[0].image_name
+                "thumbnail": post.images[0].image_name,
             }
             for post in posts
         ], 200
@@ -127,6 +127,7 @@ class PostService:
             "is_liked": bool(post.likes),
             "is_saved": post.id in saved,
             "comments": len(post.comments),
+            "created_at": post.created_at,
             "images": [
                     {
                         "id": image.id,
