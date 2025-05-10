@@ -6,7 +6,7 @@ from app.models.post import PostType
 from app.utils import encode_filename, validate_filename, validate_file_size, normalize_image
 from flask import current_app, send_from_directory
 import os
-
+from firebase_admin import messaging
 
 class PostService:
 
@@ -298,6 +298,11 @@ class PostService:
         return {"message": "Post updated successfully"}, 200
     
     
+
+
+
+
+
     @staticmethod
     def toggle_like(post_id, user_id):
         """
@@ -317,6 +322,20 @@ class PostService:
         new_like = Like(post_id=post_id, user_id=user_id)
         db.session.add(new_like)
         db.session.commit()
+        
+        user = db.session.get(User, user_id)
+        token = post.author.fcm_token
+        print(token)
+        if token:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Your post was liked!",
+                    body=f"{user.username} liked your post.",
+                ),
+                token=token
+            )
+            response = messaging.send(message)
+        
         return {"message": "Post liked"}, 200
 
     @staticmethod

@@ -102,3 +102,17 @@ def get_image(name):
         return response, status_code
 
     return jsonify(response), status_code
+
+
+@user_bp.route("/users/fcm-token", methods=["POST"])
+@jwt_required()
+def get_fcm_token():
+    identity = get_jwt_identity()
+    data = request.get_json()
+    fcm_token = data.get("token")
+    print(fcm_token)
+    if not fcm_token:
+        return jsonify({"error": "FCM token is required"}), 400
+
+    response, status_code = UserService.save_fcm(identity, fcm_token)
+    return jsonify(response), status_code

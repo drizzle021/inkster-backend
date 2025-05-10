@@ -5,7 +5,8 @@ from app.config import Config
 from app.models import *
 from flask_cors import CORS
 from flask_socketio import SocketIO
-
+import firebase_admin
+from firebase_admin import credentials
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -18,7 +19,16 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     socketio.init_app(app, cors_allowed_origins="*")
 
+    cred = credentials.Certificate("inkster-e3441-firebase-adminsdk-fbsvc-c7546aed32.json")
+
+    firebase_admin.initialize_app(cred)
+
     from app import sockets
     register_routes(app)
 
     return app
+
+
+
+
+

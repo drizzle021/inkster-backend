@@ -33,7 +33,8 @@ class User(db.Model):
     profile_picture :str = db.Column(db.String(100), nullable=False)
     banner :str = db.Column(db.String(100), nullable=False)
     date_joined = db.Column(db.DateTime, server_default=db.func.now())
-
+    fcm_token = db.Column(db.String(512), nullable=True)
+    
     posts = db.relationship("Post", back_populates="author", lazy=True, cascade="all, delete-orphan", passive_deletes=True)
     likes = db.relationship("Like", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     comments = db.relationship("Comment", back_populates="author", cascade="all, delete-orphan", passive_deletes=True)

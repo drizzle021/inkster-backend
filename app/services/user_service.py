@@ -256,3 +256,14 @@ class UserService:
         dir_path = os.path.abspath(current_app.config["UPLOAD_FOLDER"])
 
         return send_from_directory(dir_path, image_name), 200
+    
+    @staticmethod
+    def save_fcm(user_id, fcm_token):
+        user = db.session.get(User, user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        user.fcm_token = fcm_token
+        db.session.commit()
+
+        return {"message": "FCM token saved successfully"}, 200
