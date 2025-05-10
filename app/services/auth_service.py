@@ -59,8 +59,8 @@ class AuthService:
 
         # Generate token
         # use additional claims for more details -> create_access_token(identity=str(user.id), additional_claims={"username": user.username} )
-        expires = timedelta(minutes=10)
-        access_token = create_access_token(identity=str(user.id), expires_delta=expires)
+
+        access_token = create_access_token(identity=str(user.id))
         return {"access_token": access_token}, 200
     
     

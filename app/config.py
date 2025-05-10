@@ -10,6 +10,8 @@ class Config:
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
 
+    JWT_ACCESS_TOKEN_EXPIRES = 86400
+    
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
 
     GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
